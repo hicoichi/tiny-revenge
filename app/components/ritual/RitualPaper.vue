@@ -16,8 +16,6 @@ const paperEl = ref<HTMLElement | null>(null);
 const paperInnerEl = ref<HTMLElement | null>(null);
 const paperCharEl = ref<HTMLElement | null>(null);
 const textEl = ref<HTMLElement | null>(null);
-const frontCircleEl = ref<SVGCircleElement | null>(null);
-const charCircleEl = ref<SVGCircleElement | null>(null);
 
 const showText = computed(() => ritual.ritePhase.value !== 'appear');
 const showAsh = computed(() => ritual.ritePhase.value === 'ash');
@@ -45,23 +43,21 @@ async function runAppear() {
 async function runComplete() {
     const el = paperEl.value;
     const inner = paperInnerEl.value;
-    const front = frontCircleEl.value;
-    const char = charCircleEl.value;
-    if (!el || !inner || !front || !char) return;
+    const char = paperCharEl.value;
+    if (!el || !inner || !char) return;
 
     await anim.igniteFlash(inner);
 
     ritual.setRitePhase('burn');
-    const rect = inner.getBoundingClientRect();
-    const originX = rect.width / 2;
-    const originY = rect.height * 0.94;
-    const maxRadius = Math.hypot(rect.width / 2, rect.height) * 1.05;
-    anim.setBurnOrigin(front, originX, originY);
-    anim.setBurnOrigin(char, originX, originY);
+    // offsetWidth/Heightは傾きや拡縮の影響を受けない紙そのものの大きさ。
+    const width = inner.offsetWidth;
+    const height = inner.offsetHeight;
+    const geometry = { width, height, originX: width / 2, originY: height * 0.94 };
+    const maxRadius = Math.hypot(width / 2, height) * 1.05;
     warpTween = anim.warpPaper(el);
     await Promise.all([
-        anim.growBurnFront(front, maxRadius, BURN_FRONT_MS),
-        anim.growBurnFront(char, maxRadius, BURN_FRONT_MS, BURN_CHAR_DELAY_MS),
+        anim.growBurnFront(inner, geometry, maxRadius, BURN_FRONT_MS, 0, 6),
+        anim.growBurnFront(char, geometry, maxRadius, BURN_FRONT_MS, BURN_CHAR_DELAY_MS, 6),
     ]);
     warpTween?.kill();
     warpTween = null;
@@ -109,42 +105,6 @@ watch(() => ritual.ritePhase.value, runForPhase);
             <div class="paper__spacer" />
         </div>
 
-        <svg width="0" height="0" aria-hidden="true" focusable="false" class="paper__defs">
-            <defs>
-                <filter
-                    id="rr-burn-edge"
-                    x="-100%"
-                    y="-100%"
-                    width="300%"
-                    height="300%"
-                    color-interpolation-filters="sRGB"
-                >
-                    <feTurbulence
-                        type="fractalNoise"
-                        baseFrequency="0.03 0.045"
-                        numOctaves="2"
-                        seed="6"
-                        result="noise"
-                    />
-                    <feDisplacementMap
-                        in="SourceGraphic"
-                        in2="noise"
-                        scale="26"
-                        xChannelSelector="R"
-                        yChannelSelector="G"
-                    />
-                </filter>
-                <mask id="rr-front-mask">
-                    <rect x="-1000" y="-1000" width="3000" height="3000" fill="white" />
-                    <circle ref="frontCircleEl" cx="0" cy="0" r="0" fill="black" filter="url(#rr-burn-edge)" />
-                </mask>
-                <mask id="rr-char-mask">
-                    <rect x="-1000" y="-1000" width="3000" height="3000" fill="white" />
-                    <circle ref="charCircleEl" cx="0" cy="0" r="0" fill="black" filter="url(#rr-burn-edge)" />
-                </mask>
-            </defs>
-        </svg>
-
         <RitualAsh v-if="showAsh" />
     </div>
 </template>
@@ -154,10 +114,6 @@ watch(() => ritual.ritePhase.value, runForPhase);
     position: relative;
     opacity: 0;
     transform-style: preserve-3d;
-}
-
-.paper__defs {
-    position: absolute;
 }
 
 .paper__char {
@@ -172,8 +128,6 @@ watch(() => ritual.ritePhase.value, runForPhase);
         #0a0705 62%,
         transparent 80%
     );
-    mask: url(#rr-char-mask);
-    -webkit-mask: url(#rr-char-mask);
 }
 
 .paper__card {
@@ -189,8 +143,6 @@ watch(() => ritual.ritePhase.value, runForPhase);
     display: flex;
     flex-direction: column;
     gap: 16px;
-    mask: url(#rr-front-mask);
-    -webkit-mask: url(#rr-front-mask);
 }
 
 .paper__mark {

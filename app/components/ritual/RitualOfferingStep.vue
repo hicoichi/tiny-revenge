@@ -266,7 +266,7 @@ function onRewind(index: number) {
     inset: 0;
     max-width: 1040px;
     margin: 0 auto;
-    padding: 26px 16px 20px;
+    padding: 16px 16px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -275,7 +275,7 @@ function onRewind(index: number) {
 
 .offering__stage,
 .offering__decide {
-    margin-top: 26px;
+    margin-top: 12px;
     width: 100%;
     flex: 1;
     display: flex;
@@ -291,19 +291,20 @@ function onRewind(index: number) {
 }
 
 .offering__title {
-    margin: 20px 0 0;
-    font-size: clamp(22px, 5.4vw, 30px);
+    margin: 10px 0 0;
+    font-size: clamp(20px, 5.4vw, 26px);
     font-weight: 600;
-    line-height: 1.8;
-    letter-spacing: 0.12em;
+    line-height: 1.7;
+    letter-spacing: 0.1em;
     text-align: center;
-    white-space: pre-line;
+    /* スマホは縦幅が足りないため、タイトルは改行せず1行に収める(PCでは改行を生かす)。 */
+    white-space: normal;
     color: var(--rr-ink-brightest);
 }
 
 .offering__note {
     display: block;
-    margin-top: 2px;
+    margin-top: 0;
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.3em;
@@ -312,21 +313,21 @@ function onRewind(index: number) {
 
 /* 系統の選択。護摩木を選ぶ前に、探す範囲を絞る。 */
 .offering__groups {
-    margin-top: 22px;
+    margin-top: 12px;
     width: 100%;
     max-width: 440px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .offering__group {
     background: none;
     border: 1px solid var(--rr-border-soft);
-    padding: 9px 14px;
-    font-size: 13px;
-    letter-spacing: 0.2em;
+    padding: 7px 11px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
     color: var(--rr-ink-soft);
     cursor: pointer;
     font-family: inherit;
@@ -351,26 +352,26 @@ function onRewind(index: number) {
 }
 
 .offering__hint {
-    margin: 36px 0 0;
+    margin: 24px 0 0;
     font-size: 13px;
     letter-spacing: 0.34em;
     color: var(--rr-ink-faint);
 }
 
 .offering__hand {
-    margin-top: 28px;
+    margin-top: 14px;
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    gap: 14px 8px;
+    gap: 10px 8px;
 }
 
 /* 白木に自分で書く入力欄。 */
 .offering__write {
-    margin-top: 30px;
+    margin-top: 20px;
     width: min(340px, 100%);
     display: flex;
     flex-direction: column;
@@ -436,13 +437,13 @@ function onRewind(index: number) {
 }
 
 .offering__decide {
-    margin-top: 20px;
+    margin-top: 8px;
 }
 
 .offering__paper {
-    width: min(290px, 78vw);
-    height: clamp(340px, 54vh, 460px);
-    padding: 26px 22px;
+    width: min(280px, 76vw);
+    height: clamp(300px, 44dvh, 360px);
+    padding: 20px 18px;
     border-radius: 2px;
     background: linear-gradient(160deg, var(--rr-paper), var(--rr-paper-dark));
     color: var(--rr-paper-ink);
@@ -455,33 +456,33 @@ function onRewind(index: number) {
     margin: 0;
     writing-mode: vertical-rl;
     white-space: pre-line;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
-    line-height: 2.3;
-    letter-spacing: 0.12em;
+    line-height: 2.2;
+    letter-spacing: 0.1em;
 }
 
 .offering__hold {
-    margin-top: 22px;
+    margin-top: 14px;
     width: min(300px, 100%);
 }
 
 .offering__note-small {
-    margin: 18px 0 0;
+    margin: 10px 0 0;
     font-size: 11px;
     letter-spacing: 0.34em;
     color: var(--rr-ink-faint);
 }
 
 .offering__redo {
-    margin-top: 10px;
+    margin-top: 2px;
     background: none;
     border: none;
     font-size: 12px;
     letter-spacing: 0.3em;
     color: var(--rr-ink-faint);
     cursor: pointer;
-    padding: 8px;
+    padding: 6px;
     font-family: inherit;
 }
 
@@ -502,11 +503,24 @@ function onRewind(index: number) {
 /* PC: 護摩木を大きく一列に並べ、炉を広い空間の奥に据える。 */
 @media (min-width: 880px) {
     .offering__scroll {
-        padding-top: 44px;
+        padding: 44px 16px 20px;
     }
 
     .offering__stage {
         margin-top: 40px;
+    }
+
+    .offering__title {
+        font-size: clamp(22px, 2.4vw, 30px);
+        white-space: pre-line;
+    }
+
+    .offering__note {
+        margin-top: 2px;
+    }
+
+    .offering__groups {
+        margin-top: 22px;
     }
 
     .offering__groups {
@@ -519,6 +533,10 @@ function onRewind(index: number) {
         gap: 16px 18px;
     }
 
+    .offering__decide {
+        margin-top: 20px;
+    }
+
     .offering__paper {
         width: 340px;
         height: clamp(420px, 56vh, 540px);
@@ -527,6 +545,16 @@ function onRewind(index: number) {
 
     .offering__vow {
         font-size: 21px;
+        line-height: 2.3;
+        letter-spacing: 0.12em;
+    }
+
+    .offering__hold {
+        margin-top: 22px;
+    }
+
+    .offering__note-small {
+        margin-top: 18px;
     }
 }
 </style>

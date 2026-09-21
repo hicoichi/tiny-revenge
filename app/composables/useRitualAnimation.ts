@@ -14,6 +14,60 @@ function tweenTo(el: gsap.TweenTarget, vars: TweenVars): Promise<void> {
     });
 }
 
+// 紙の穴の縁を不規則にするための、位置に固定された滑らかなノイズ(バリューノイズ)。
+// 以前はSVGのfeTurbulence+マスクで表現していたが、iOS SafariはCSSのmask:url(#id)を解釈しないため、
+// どのブラウザでも動くclip-pathのpath()を毎フレーム計算して作る方式にしている。
+function latticeValue(ix: number, iy: number, seed: number): number {
+    let h = Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed, 2147483629);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+function valueNoise(x: number, y: number, seed: number): number {
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const fx = x - ix;
+    const fy = y - iy;
+    const sx = fx * fx * (3 - 2 * fx);
+    const sy = fy * fy * (3 - 2 * fy);
+    const top = latticeValue(ix, iy, seed) * (1 - sx) + latticeValue(ix + 1, iy, seed) * sx;
+    const bottom = latticeValue(ix, iy + 1, seed) * (1 - sx) + latticeValue(ix + 1, iy + 1, seed) * sx;
+    return top * (1 - sy) + bottom * sy;
+}
+
+// 穴の縁の凹凸の大きさ(px)。以前のSVGフィルタ(displacement scale 26)と同程度の荒さにしている。
+const BURN_EDGE_AMPLITUDE = 22;
+const BURN_EDGE_STEPS = 96;
+const BURN_EDGE_RAMP_RADIUS = 40;
+
+export interface BurnGeometry {
+    width: number;
+    height: number;
+    originX: number;
+    originY: number;
+}
+
+// 着火点から半径radiusに広がる不規則な穴を、紙(矩形)からくり抜いたclip-pathを作る。
+// 穴は矩形に対して偶奇規則(evenodd)で差し引くため、矩形の外にはみ出した部分は影響しない。
+function burnClipPath(geometry: BurnGeometry, radius: number, seed: number): string {
+    const { width, height, originX, originY } = geometry;
+    const points: string[] = [];
+    for (let i = 0; i < BURN_EDGE_STEPS; i += 1) {
+        const angle = (i / BURN_EDGE_STEPS) * Math.PI * 2;
+        const dx = Math.cos(angle);
+        const dy = Math.sin(angle);
+        // 空間に固定されたノイズを縁の位置で引くので、穴が広がるにつれて縁が自然に形を変える。
+        const px = originX + dx * radius;
+        const py = originY + dy * radius;
+        const noise = valueNoise(px * 0.035, py * 0.035, seed) * 0.65 + valueNoise(px * 0.09, py * 0.09, seed + 7) * 0.35;
+        // 燃え始めの小さな穴が突然大きく開かないよう、半径が小さいうちは凹凸を抑える。
+        const amplitude = BURN_EDGE_AMPLITUDE * Math.min(1, radius / BURN_EDGE_RAMP_RADIUS);
+        const edge = Math.max(0, radius + (noise - 0.5) * 2 * amplitude);
+        points.push(`${(originX + dx * edge).toFixed(1)} ${(originY + dy * edge).toFixed(1)}`);
+    }
+    return `path(evenodd, "M0 0H${width}V${height}H0Z M${points.join(' L')} Z")`;
+}
+
 // 儀式演出（紙の移動・変形、炎、灰、フェード、カメラ的な移動・ズーム）を GSAP で表現する。
 // UI コンポーネントはここに定義した関数を呼び出すだけにし、アニメーションの詳細を持たない。
 export function useRitualAnimation() {
@@ -56,24 +110,28 @@ export function useRitualAnimation() {
         });
     }
 
-    // 「穴が開いて広がっていく」円の中心を、紙の着火点(下端中央)に合わせて初期化する。
-    function setBurnOrigin(circleEl: SVGCircleElement, cx: number, cy: number) {
-        gsap.set(circleEl, { attr: { cx, cy, r: 0 } });
-    }
-
-    // 穴の前線を表す円の半径を広げる。表面(cream)側と炭(char)側で
+    // 「穴が開いて広がっていく」前線を表す。表面(cream)側と炭(char)側で
     // durationMsは共通にし、delayMsをずらすことで「炭の縁」の幅を作る。
     function growBurnFront(
-        circleEl: SVGCircleElement,
+        el: HTMLElement,
+        geometry: BurnGeometry,
         maxRadius: number,
         durationMs: number,
         delayMs = 0,
+        seed = 1,
     ) {
-        return tweenTo(circleEl, {
-            attr: { r: maxRadius },
-            duration: durationMs / 1000,
-            delay: delayMs / 1000,
-            ease: 'power1.in',
+        const state = { radius: 0 };
+        return new Promise<void>((resolve) => {
+            gsap.to(state, {
+                radius: maxRadius,
+                duration: durationMs / 1000,
+                delay: delayMs / 1000,
+                ease: 'power1.in',
+                onUpdate: () => {
+                    el.style.clipPath = burnClipPath(geometry, state.radius, seed);
+                },
+                onComplete: resolve,
+            });
         });
     }
 
@@ -235,7 +293,6 @@ export function useRitualAnimation() {
         appearPaper,
         fadeInText,
         igniteFlash,
-        setBurnOrigin,
         growBurnFront,
         warpPaper,
         fadeOutPaper,

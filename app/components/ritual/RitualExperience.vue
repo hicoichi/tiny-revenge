@@ -26,7 +26,9 @@ function onRestart() {
 
 <template>
     <div class="experience">
-        <Transition name="rr-screen" mode="out-in">
+        <!-- 各画面は入場アニメーション(animation)を持つ。typeを指定しないと、その長さ(決着画面は3秒)を
+             遷移の長さと誤って判定し、退場が終わるまで画面が切り替わらなくなる。 -->
+        <Transition name="rr-screen" mode="out-in" type="transition">
             <RitualStart
                 v-if="ritual.step.value === 'start'"
                 key="start"
@@ -50,6 +52,8 @@ function onRestart() {
 .experience {
     position: relative;
     min-height: 100vh;
+    /* iOS Safariでは100vhがツールバーを含む高さになり、下端が隠れてスクロールが必要になる。 */
+    min-height: 100dvh;
     width: 100%;
     background: radial-gradient(
         120% 70% at 50% 8%,

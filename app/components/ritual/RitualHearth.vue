@@ -33,10 +33,11 @@ defineExpose({ getFireRect });
 .hearth {
     position: relative;
     flex: none;
-    width: min(300px, 82vw);
+    /* 画面の縦幅に応じて縮め、スマホでスクロールせずに収める。 */
+    width: clamp(150px, 26dvh, 210px);
     aspect-ratio: 320 / 150;
-    margin-top: 14px;
-    --hearth-flame-scale: 0.26;
+    margin-top: 6px;
+    --hearth-flame-scale: 0.17;
 }
 
 .hearth__flame {

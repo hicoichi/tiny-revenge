@@ -118,11 +118,11 @@ function onClick(event: MouseEvent) {
     --w: 44px;
     position: relative;
     width: var(--w);
-    height: calc(var(--n) * 1.2em + 44px);
+    height: calc(var(--n) * 1.14em + 44px);
     padding: 0;
     border: none;
     background: none;
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
     rotate: var(--tilt);
     /* clip-pathが影を切り取ってしまうため、影は輪郭で切られない外側のbuttonに付ける。 */

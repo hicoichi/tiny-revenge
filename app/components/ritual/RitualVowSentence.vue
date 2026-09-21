@@ -43,15 +43,22 @@ const emit = defineEmits<{
     margin: 0;
     max-width: 480px;
     text-align: center;
-    font-size: 15px;
-    line-height: 2.5;
-    letter-spacing: 0.08em;
+    font-size: 13px;
+    line-height: 2.2;
+    letter-spacing: 0.06em;
     color: var(--rr-ink-faint);
     transition: opacity 0.8s;
 }
 
 .sentence--dimmed {
     opacity: 0.35;
+}
+
+/* 決定画面では、紙に同じ文が書かれている。スマホは縦幅が足りないため、穴埋め文は省く。 */
+@media (max-width: 879px) {
+    .sentence--dimmed {
+        display: none;
+    }
 }
 
 .sentence__blank {
@@ -98,6 +105,8 @@ const emit = defineEmits<{
     .sentence {
         max-width: 720px;
         font-size: 19px;
+        line-height: 2.5;
+        letter-spacing: 0.08em;
     }
 }
 </style>

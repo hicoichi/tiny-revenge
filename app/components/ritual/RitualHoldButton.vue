@@ -35,6 +35,7 @@ function onPointerDown() {
             class="hold__button"
             :class="`hold__button--${variant}`"
             :disabled="disabled"
+            @contextmenu.prevent
             @pointerdown="onPointerDown"
             @pointerup="end"
             @pointerleave="end"
@@ -74,6 +75,10 @@ function onPointerDown() {
     overflow: hidden;
     touch-action: none;
     font-family: inherit;
+    /* 長押しの間に文字が選択されたり、iOSの拡大鏡・メニューが出たりしないようにする。 */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .hold__button:disabled {
