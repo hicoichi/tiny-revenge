@@ -4,6 +4,9 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
     css: ['~/assets/css/main.css'],
     app: {
+        // GitHub Pages(プロジェクトページ)は /<repo名>/ 配下で配信されるため、
+        // CI(nuxt generate)ではNUXT_APP_BASE_URLでこの値を上書きする。
+        baseURL: process.env.NUXT_APP_BASE_URL || '/',
         head: {
             htmlAttrs: { lang: 'ja' },
             title: '復讐',
