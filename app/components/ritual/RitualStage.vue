@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { HOLD_COMPLETE_MS, HOLD_RAISE_MS } from '~/constants/revenge';
+import { HOLD_COMPLETE_MS } from '~/constants/revenge';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRitual } from '~/composables/useRitual';
 import type { RitePhase } from '~/types/revenge';
@@ -12,23 +12,14 @@ const ritual = useRitual();
 const flaring = computed(() =>
     (['ignite', 'burn', 'ash'] as RitePhase[]).includes(ritual.ritePhase.value),
 );
-const showRaise = computed(() => ritual.ritePhase.value === 'ready');
-const showComplete = computed(() => ritual.ritePhase.value === 'raised');
+const showComplete = computed(() => ritual.ritePhase.value === 'ready');
 
 const hint = computed(() => {
-    switch (ritual.ritePhase.value) {
-        case 'ready':
-            return '復讐は記された。';
-        case 'raised':
-            return 'この復讐を、現実で実行せよ。\n終えたときだけ、完遂を押せ。';
-        default:
-            return '';
+    if (ritual.ritePhase.value === 'ready') {
+        return 'この復讐を実行せよ。\n終えたら完遂を押せ。';
     }
+    return '';
 });
-
-function raise() {
-    ritual.setRitePhase('raising');
-}
 
 function complete() {
     ritual.setRitePhase('ignite');
@@ -37,30 +28,19 @@ function complete() {
 
 <template>
     <div class="stage">
-        <div class="stage__glow" />
-        <div class="stage__pillar stage__pillar--left" />
-        <div class="stage__pillar stage__pillar--right" />
-        <div class="stage__altar" />
-        <div class="stage__altar-top" />
+        <div class="stage__bg" />
+        <div class="stage__scrim" />
 
-        <RitualFlame :flaring="flaring" />
+        <RitualFlame :power="flaring ? 1 : 0" />
 
         <div class="stage__paper-wrap">
             <RitualPaper
                 :vow="revenge.vow.value"
-                :constraint-label="revenge.constraint.value ?? ''"
-                :verb-label="revenge.verb.value ?? ''"
             />
         </div>
 
         <div class="stage__footer">
             <p class="stage__hint">{{ hint }}</p>
-            <RitualHoldButton
-                v-if="showRaise"
-                label="紙 を 掲 げ る"
-                :hold-ms="HOLD_RAISE_MS"
-                @complete="raise"
-            />
             <RitualHoldButton
                 v-if="showComplete"
                 label="完 遂"
@@ -81,57 +61,25 @@ function complete() {
     max-width: 660px;
     margin: 0 auto;
     overflow: hidden;
-    --rr-flame-bottom: 22vh;
+    --rr-flame-bottom: 18vh;
 }
 
-.stage__glow {
+.stage__bg {
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-        70% 45% at 50% 30%,
-        rgba(90, 80, 62, 0.22) 0%,
-        rgba(0, 0, 0, 0) 70%
+    background: url('/images/petternC.jpg') center / cover no-repeat;
+}
+
+/* 足元のヒント文字・ボタンが写真の上でも読めるよう、下部だけ軽く沈める。 */
+.stage__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(5, 4, 3, 0) 55%,
+        rgba(5, 4, 3, 0.55) 82%,
+        rgba(5, 4, 3, 0.8) 100%
     );
-}
-
-.stage__pillar {
-    position: absolute;
-    top: 9vh;
-    bottom: 0;
-    width: 11%;
-    background: linear-gradient(90deg, #14120f, #232019 40%, #0d0c0a);
-}
-
-.stage__pillar--left {
-    left: 0;
-    box-shadow: inset -14px 0 24px rgba(0, 0, 0, 0.6);
-}
-
-.stage__pillar--right {
-    right: 0;
-    background: linear-gradient(270deg, #14120f, #232019 40%, #0d0c0a);
-    box-shadow: inset 14px 0 24px rgba(0, 0, 0, 0.6);
-}
-
-.stage__altar {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    width: 36%;
-    height: 20vh;
-    background: linear-gradient(180deg, #1d1a15, #100e0c);
-    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.7);
-}
-
-.stage__altar-top {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 20vh;
-    width: 42%;
-    height: 12px;
-    background: #221f19;
 }
 
 .stage__paper-wrap {
@@ -158,11 +106,14 @@ function complete() {
 
 .stage__hint {
     margin: 0;
-    font-size: 11px;
-    letter-spacing: 0.34em;
-    color: #8a8170;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--rr-ink-brightest);
+    /* 背景写真の明るい部分に重なっても読めるよう、暗い縁取りの影を付ける。 */
+    text-shadow: 0 0 14px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9);
     text-align: center;
-    min-height: 16px;
+    min-height: 34px;
     white-space: pre-line;
     line-height: 2;
 }
@@ -183,6 +134,10 @@ function complete() {
 @media (min-width: 880px) {
     .stage {
         max-width: 900px;
+    }
+
+    .stage__hint {
+        font-size: 20px;
     }
 
     .stage__paper-wrap {

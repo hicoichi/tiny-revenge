@@ -7,12 +7,10 @@ const props = withDefaults(
         holdMs: number;
         disabled?: boolean;
         variant?: 'default' | 'primary';
-        hint?: string;
     }>(),
     {
         disabled: false,
         variant: 'default',
-        hint: '',
     },
 );
 
@@ -32,7 +30,6 @@ function onPointerDown() {
 
 <template>
     <div class="hold">
-        <p v-if="hint" class="hold__hint">{{ hint }}</p>
         <button
             type="button"
             class="hold__button"
@@ -46,7 +43,10 @@ function onPointerDown() {
                 class="hold__fill"
                 :style="{ width: `${Math.round(progress * 100)}%` }"
             />
+            <!-- 押していない間だけ、満ちていく帯を繰り返し見せて「押し続ける」操作だと伝える。 -->
+            <span v-if="!disabled && progress === 0" class="hold__sweep" />
             <span class="hold__label">{{ label }}</span>
+            <span class="hold__caption">{{ progress > 0 ? '押 し 続 け ろ' : '長 押 し' }}</span>
         </button>
     </div>
 </template>
@@ -60,21 +60,14 @@ function onPointerDown() {
     width: 100%;
 }
 
-.hold__hint {
-    margin: 0;
-    font-size: 10px;
-    letter-spacing: 0.32em;
-    color: var(--rr-ink-faint);
-}
-
 .hold__button {
     position: relative;
     width: 100%;
     background: none;
     border: 1px solid var(--rr-border-strong);
     color: var(--rr-ink-strong);
-    padding: 22px 0;
-    font-size: 16px;
+    padding: 18px 0 16px;
+    font-size: 18px;
     letter-spacing: 0.42em;
     font-weight: 600;
     cursor: pointer;
@@ -106,7 +99,48 @@ function onPointerDown() {
     background: var(--rr-hold-fill-primary);
 }
 
+.hold__sweep {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, var(--rr-hold-fill), transparent);
+    transform: translateX(-100%);
+    animation: rr-hold-sweep 2.2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.hold__button--primary .hold__sweep {
+    background: linear-gradient(90deg, transparent, var(--rr-hold-fill-primary), transparent);
+}
+
 .hold__label {
     position: relative;
+    display: block;
+}
+
+.hold__caption {
+    position: relative;
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    color: var(--rr-gold-bright);
+}
+
+.hold__button:disabled .hold__caption {
+    color: var(--rr-ink-dim);
+}
+
+@keyframes rr-hold-sweep {
+    0% {
+        transform: translateX(-100%);
+    }
+    70%,
+    100% {
+        transform: translateX(100%);
+    }
 }
 </style>

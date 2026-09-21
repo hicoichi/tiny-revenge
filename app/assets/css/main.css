@@ -93,3 +93,15 @@ button {
         transform: none;
     }
 }
+
+/* 手元に護摩木が置かれる動き。 */
+@keyframes rr-lay {
+    from {
+        opacity: 0;
+        transform: translateY(36px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

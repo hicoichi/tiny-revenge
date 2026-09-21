@@ -5,7 +5,7 @@ import { useRitual } from '~/composables/useRitual';
 import type { RevengeSnapshot, RitualSnapshot } from '~/types/revenge';
 
 interface PersistedState {
-    version: 1;
+    version: 3;
     ritual: RitualSnapshot;
     revenge: RevengeSnapshot;
 }
@@ -14,7 +14,7 @@ function isPersistedState(data: unknown): data is PersistedState {
     return (
         typeof data === 'object' &&
         data !== null &&
-        (data as { version?: unknown }).version === 1
+        (data as { version?: unknown }).version === 3
     );
 }
 
@@ -45,12 +45,18 @@ export function useRevengeStorage() {
         if (!isPersistedState(data)) return;
         revenge.hydrate(data.revenge);
         ritual.hydrate(data.ritual);
+        // 選択が欠けたまま復讐の確定・儀式へ進んだ状態は成立しないため、最初からやり直す。
+        const needsCompleteVow = ['decide', 'rite', 'verdict'].includes(ritual.step.value);
+        if (needsCompleteVow && !revenge.isComplete.value) {
+            ritual.reset();
+            revenge.resetRevenge();
+        }
     }
 
     function save() {
         if (typeof window === 'undefined') return;
         const data: PersistedState = {
-            version: 1,
+            version: 3,
             ritual: ritual.snapshot(),
             revenge: revenge.snapshot(),
         };
@@ -78,14 +84,13 @@ export function useRevengeStorage() {
         watch(
             () => [
                 ritual.step.value,
-                ritual.questionIndex.value,
+                ritual.selectIndex.value,
                 ritual.ritePhase.value,
-                revenge.answers.harm,
-                revenge.answers.anger,
-                revenge.answers.want,
-                revenge.constraint.value,
-                revenge.verb.value,
-                revenge.vow.value,
+                revenge.picks.target,
+                revenge.picks.deed,
+                revenge.picks.verb,
+                revenge.picks.act,
+                revenge.picks.constraint,
             ],
             save,
         );

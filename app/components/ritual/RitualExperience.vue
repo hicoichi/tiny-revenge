@@ -12,15 +12,10 @@ onMounted(() => {
     storage.init();
 });
 
-const screenKey = computed(() =>
-    ritual.step.value === 'question'
-        ? `question-${ritual.questionIndex.value}`
-        : ritual.step.value,
+// 選択と確認は炎を共有する一続きの場面なので、同じキーにして画面を入れ替えない。
+const isOfferingScene = computed(
+    () => ritual.step.value === 'select' || ritual.step.value === 'decide',
 );
-
-function onAnswerUpdate(value: string) {
-    revenge.setAnswer(ritual.currentQuestion.value.key, value);
-}
 
 function onRestart() {
     ritual.reset();
@@ -38,47 +33,7 @@ function onRestart() {
                 @start="ritual.next()"
             />
 
-            <RitualQuestionStep
-                v-else-if="ritual.step.value === 'question'"
-                :key="screenKey"
-                :question="ritual.currentQuestion.value"
-                :answer="revenge.answers[ritual.currentQuestion.value.key]"
-                @update:answer="onAnswerUpdate"
-                @back="ritual.back()"
-                @next="ritual.next()"
-            />
-
-            <RitualConstraintStep
-                v-else-if="ritual.step.value === 'constraint'"
-                key="constraint"
-                :constraints="revenge.constraints"
-                :selected="revenge.constraint.value"
-                @select="revenge.setConstraint"
-                @back="ritual.back()"
-                @next="ritual.next()"
-            />
-
-            <RitualVerbStep
-                v-else-if="ritual.step.value === 'verb'"
-                key="verb"
-                :verbs="revenge.verbs"
-                :selected="revenge.verb.value"
-                @select="revenge.setVerb"
-                @back="ritual.back()"
-                @next="ritual.next()"
-            />
-
-            <RitualComposeStep
-                v-else-if="ritual.step.value === 'compose'"
-                key="compose"
-                :constraint-label="revenge.constraint.value ?? ''"
-                :verb-label="revenge.verb.value ?? ''"
-                :vow="revenge.vow.value"
-                :is-vow-valid="revenge.isVowValid.value"
-                @update:vow="revenge.setVow"
-                @back="ritual.back()"
-                @decide="ritual.enterRite()"
-            />
+            <RitualOfferingStep v-else-if="isOfferingScene" key="offering" />
 
             <RitualStage v-else-if="ritual.step.value === 'rite'" key="rite" />
 

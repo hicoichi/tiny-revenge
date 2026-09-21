@@ -1,5 +1,5 @@
-import { computed, readonly, ref } from 'vue';
-import { REVENGE_QUESTIONS } from '~/constants/revenge';
+import { readonly, ref } from 'vue';
+import { REVENGE_STAGES } from '~/constants/revengeStages';
 import type { RitePhase, RitualSnapshot, RitualStep } from '~/types/revenge';
 
 // 燃焼アニメーションの途中経過はアニメーション専用の状態であり、そのまま復元できない。
@@ -9,70 +9,36 @@ const RESUMABLE_RITE_PHASE: Record<RitePhase, RitePhase> = {
     appear: 'ready',
     text: 'ready',
     ready: 'ready',
-    raising: 'ready',
-    raised: 'raised',
-    ignite: 'raised',
-    burn: 'raised',
-    ash: 'raised',
+    ignite: 'ready',
+    burn: 'ready',
+    ash: 'ready',
 };
 
 // 儀式全体の進行状態。画面をまたいで保持する必要があるためモジュールスコープで共有する。
 const step = ref<RitualStep>('start');
-const questionIndex = ref(0);
+const selectIndex = ref(0);
 const ritePhase = ref<RitePhase>('idle');
 const isBlackout = ref(false);
 
-// questionIndexは常に0〜REVENGE_QUESTIONS.length-1の範囲に保たれるため、非nullを保証してよい。
-const currentQuestion = computed(() => REVENGE_QUESTIONS[questionIndex.value]!);
-const isFirstQuestion = computed(() => questionIndex.value === 0);
-const isLastQuestion = computed(
-    () => questionIndex.value === REVENGE_QUESTIONS.length - 1,
-);
-
 function next() {
     if (step.value === 'start') {
-        step.value = 'question';
-        questionIndex.value = 0;
+        step.value = 'select';
+        selectIndex.value = 0;
         return;
     }
-    if (step.value === 'question') {
-        if (!isLastQuestion.value) {
-            questionIndex.value += 1;
+    if (step.value === 'select') {
+        if (selectIndex.value < REVENGE_STAGES.length - 1) {
+            selectIndex.value += 1;
         } else {
-            step.value = 'constraint';
+            step.value = 'decide';
         }
-        return;
-    }
-    if (step.value === 'constraint') {
-        step.value = 'verb';
-        return;
-    }
-    if (step.value === 'verb') {
-        step.value = 'compose';
     }
 }
 
-function back() {
-    if (step.value === 'question') {
-        if (!isFirstQuestion.value) {
-            questionIndex.value -= 1;
-        } else {
-            step.value = 'start';
-        }
-        return;
-    }
-    if (step.value === 'constraint') {
-        step.value = 'question';
-        questionIndex.value = REVENGE_QUESTIONS.length - 1;
-        return;
-    }
-    if (step.value === 'verb') {
-        step.value = 'constraint';
-        return;
-    }
-    if (step.value === 'compose') {
-        step.value = 'verb';
-    }
+// 選び直すために、指定した段階の選択画面へ戻る。
+function rewindTo(index: number) {
+    step.value = 'select';
+    selectIndex.value = index;
 }
 
 // 誓いを記し、儀式（紙が現れる演出）へ入る。
@@ -95,7 +61,7 @@ function finishRite() {
 
 function reset() {
     step.value = 'start';
-    questionIndex.value = 0;
+    selectIndex.value = 0;
     ritePhase.value = 'idle';
     isBlackout.value = false;
 }
@@ -104,7 +70,7 @@ function reset() {
 function snapshot(): RitualSnapshot {
     return {
         step: step.value,
-        questionIndex: questionIndex.value,
+        selectIndex: selectIndex.value,
         ritePhase: ritePhase.value,
     };
 }
@@ -112,7 +78,13 @@ function snapshot(): RitualSnapshot {
 // 保存されていたスナップショットから状態を復元する。
 function hydrate(data: Partial<RitualSnapshot>) {
     step.value = data.step ?? 'start';
-    questionIndex.value = data.questionIndex ?? 0;
+    const savedIndex = data.selectIndex ?? 0;
+    selectIndex.value =
+        Number.isInteger(savedIndex) &&
+        savedIndex >= 0 &&
+        savedIndex < REVENGE_STAGES.length
+            ? savedIndex
+            : 0;
     ritePhase.value =
         step.value === 'rite'
             ? RESUMABLE_RITE_PHASE[data.ritePhase ?? 'ready']
@@ -123,14 +95,11 @@ function hydrate(data: Partial<RitualSnapshot>) {
 export function useRitual() {
     return {
         step: readonly(step),
-        questionIndex: readonly(questionIndex),
-        currentQuestion,
-        isFirstQuestion,
-        isLastQuestion,
+        selectIndex: readonly(selectIndex),
         ritePhase: readonly(ritePhase),
         isBlackout: readonly(isBlackout),
         next,
-        back,
+        rewindTo,
         enterRite,
         setRitePhase,
         finishRite,

@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>焚恨録 護摩木モック</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg: #0b0a09;
+                --bg-deep: #050505;
+                --bg-glow: #1c1a17;
+                --ink: #d7cfc0;
+                --ink-bright: #f0e7d4;
+                --ink-faint: #6a6252;
+                --ink-dim: #4a453c;
+                --border: #4a443a;
+                --border-selected: #8a7443;
+                --gold: #c9a227;
+                --gold-bright: #e6c04f;
+                --paper: #efe7d5;
+                --paper-dark: #ddd3bc;
+                --paper-ink: #2a251c;
+                --wood: #d8bf8b;
+                --wood-dark: #bd9c60;
+                --sumi: #1e1710;
+                --font: 'Shippori Mincho B1', serif;
+                /* 炎の大きさ(0〜4段階。確定の瞬間だけ5) */
+                --lv: 0;
+                --k: 1;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+                background: radial-gradient(ellipse at 50% 25%, var(--bg-glow), var(--bg) 55%, var(--bg-deep));
+                color: var(--ink);
+                font-family: var(--font);
+                -webkit-font-smoothing: antialiased;
+                overflow-x: hidden;
+            }
+            button {
+                font-family: inherit;
+                color: inherit;
+            }
+            button:focus-visible {
+                outline: 2px solid var(--gold);
+                outline-offset: 4px;
+            }
+            [hidden] {
+                display: none !important;
+            }
+
+            @keyframes rr-in {
+                from { opacity: 0; transform: translateY(14px); }
+                to { opacity: 1; transform: none; }
+            }
+            @keyframes rr-lay {
+                from { opacity: 0; transform: translateY(36px); }
+                to { opacity: 1; transform: none; }
+            }
+            @keyframes rr-pulse {
+                0%, 100% { border-color: var(--border-selected); }
+                50% { border-color: var(--gold-bright); }
+            }
+            @keyframes rr-flick {
+                0% { transform: scale(1, 1.25) skewX(-3deg); }
+                50% { transform: scale(0.94, 1.5) skewX(3deg); }
+                100% { transform: scale(1.04, 1.32) skewX(-2deg); }
+            }
+            @keyframes rr-flare {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+            /* 炎が育つほど、周囲の空間がうっすら赤く照らされる */
+            .floor {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background: radial-gradient(ellipse 75% 45% at 50% 100%, rgba(255, 120, 30, 0.28), transparent 72%);
+                opacity: calc(0.15 + var(--lv) * 0.19);
+                transition: opacity 1.4s;
+            }
+
+            .app {
+                position: relative;
+                min-height: 100vh;
+                min-height: 100dvh;
+                max-width: 1040px;
+                margin: 0 auto;
+                padding: 26px 16px 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* 組み上がる復讐文(穴埋め)。埋まった箇所を押すとそこまで戻れる */
+            .sentence {
+                margin: 0;
+                max-width: 480px;
+                text-align: center;
+                font-size: 15px;
+                line-height: 2.5;
+                letter-spacing: 0.08em;
+                color: var(--ink-faint);
+                transition: opacity 0.8s;
+            }
+            .blank {
+                display: inline-block;
+                min-width: 3.4em;
+                padding: 0 6px 1px;
+                background: none;
+                border: none;
+                border-bottom: 1px dashed var(--border);
+                font-size: inherit;
+                letter-spacing: inherit;
+                color: var(--ink-dim);
+                cursor: default;
+            }
+            .blank.is-current {
+                border-bottom: 1px solid var(--border-selected);
+                color: var(--gold);
+                animation: rr-pulse 1.8s ease-in-out infinite;
+            }
+            .blank.is-filled {
+                border-bottom: 1px solid var(--gold);
+                color: var(--ink-bright);
+                cursor: pointer;
+            }
+
+            .stage {
+                margin-top: 26px;
+                width: 100%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                animation: rr-in 0.9s ease both;
+            }
+            .stage__mark {
+                margin: 0;
+                font-size: 11px;
+                letter-spacing: 0.42em;
+                color: var(--ink-faint);
+            }
+            .stage__title {
+                margin: 20px 0 0;
+                font-size: clamp(22px, 5.4vw, 30px);
+                font-weight: 600;
+                line-height: 1.8;
+                letter-spacing: 0.12em;
+                text-align: center;
+                color: var(--ink-bright);
+            }
+            .stage__note {
+                display: block;
+                margin-top: 2px;
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.3em;
+                color: var(--ink-faint);
+            }
+
+            /* 護摩木。1本ずつ手元に並べ、選んだ1本を炉へくべる */
+            .hand {
+                margin-top: 28px;
+                width: 100%;
+                max-width: 400px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 12px 10px;
+            }
+            .tablet {
+                --w: 48px;
+                width: var(--w);
+                /* 文字数に応じて高さを揃える(ステージごとの最長文字数 --n) */
+                height: calc(var(--n) * 1.2em + 40px);
+                padding: 0;
+                border: none;
+                background: none;
+                font-size: 14px;
+                cursor: pointer;
+                rotate: var(--tilt, 0deg);
+                filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.6));
+                animation: rr-lay 0.7s ease backwards;
+                animation-delay: calc(var(--i) * 70ms);
+                transition: transform 0.4s, opacity 0.4s, filter 0.4s;
+            }
+            .tablet__body {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+                padding: 22px 0 14px;
+                /* 先の尖った板の形。clip-path は影を切り取るため、影は外側のbuttonに付けている */
+                clip-path: polygon(0 11px, 50% 0, 100% 11px, 100% 100%, 0 100%);
+                background: repeating-linear-gradient(90deg, rgba(110, 76, 30, 0.16) 0 1px, transparent 1px 6px),
+                    linear-gradient(90deg, var(--wood-dark), var(--wood) 30%, #e6d19f 55%, var(--wood) 80%, var(--wood-dark));
+            }
+            .tablet__text {
+                writing-mode: vertical-rl;
+                font-weight: 800;
+                line-height: 1.2;
+                letter-spacing: 0.14em;
+                color: var(--sumi);
+            }
+            .tablet.is-dim {
+                opacity: 0.18;
+                filter: grayscale(1) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.6));
+            }
+            .hand.is-locked .tablet {
+                pointer-events: none;
+            }
+            @media (hover: hover) {
+                .tablet:hover:not(.is-dim) {
+                    transform: translateY(-8px);
+                    filter: drop-shadow(0 0 14px rgba(255, 150, 50, 0.55)) drop-shadow(0 10px 10px rgba(0, 0, 0, 0.6));
+                }
+            }
+            .tablet--flying {
+                position: fixed;
+                margin: 0;
+                z-index: 20;
+                pointer-events: none;
+                animation: none;
+                transition: none;
+            }
+
+            /* 炉と炎。選択のたびに炎が一段育つ */
+            .hearth {
+                position: relative;
+                flex: none;
+                width: min(260px, 72vw);
+                height: 150px;
+                margin-top: 16px;
+            }
+            .hearth__glow {
+                position: absolute;
+                left: 50%;
+                bottom: 20px;
+                width: 260px;
+                height: 200px;
+                margin-left: -130px;
+                background: radial-gradient(ellipse at 50% 70%, rgba(255, 130, 30, 0.5), transparent 68%);
+                opacity: calc(0.3 + var(--lv) * 0.17);
+                transition: opacity 1s;
+                pointer-events: none;
+            }
+            .hearth__bowl {
+                position: absolute;
+                left: 4%;
+                right: 4%;
+                bottom: 0;
+                height: 40px;
+                border-radius: 6px 6px 50px 50px / 6px 6px 26px 26px;
+                background: linear-gradient(#2c2823, #12100e);
+                box-shadow: inset 0 5px 12px #000, 0 16px 34px rgba(0, 0, 0, 0.8);
+            }
+            .hearth__log {
+                position: absolute;
+                bottom: 26px;
+                left: 50%;
+                width: 96px;
+                height: 13px;
+                margin-left: -48px;
+                border-radius: 7px;
+                background: linear-gradient(#2a1d12, #120c07);
+                box-shadow: 0 0 12px rgba(255, 110, 20, calc(0.15 + var(--lv) * 0.12));
+            }
+            .hearth__log--a {
+                rotate: 14deg;
+            }
+            .hearth__log--b {
+                rotate: -14deg;
+            }
+            .flame {
+                position: absolute;
+                left: 50%;
+                bottom: 30px;
+                width: 100px;
+                height: 70px;
+                margin-left: -50px;
+                transform-origin: 50% 100%;
+                scale: calc((0.3 + var(--lv) * 0.22) * var(--k));
+                transition: scale 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+                pointer-events: none;
+            }
+            .flame__tongue {
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                width: 46px;
+                height: 46px;
+                margin-left: -23px;
+                transform-origin: 50% 100%;
+                animation: rr-flick 1.3s ease-in-out infinite alternate;
+                mix-blend-mode: screen;
+            }
+            .flame__tongue::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 50% 0 50% 50%;
+                rotate: -45deg;
+                background: radial-gradient(circle at 50% 62%, #fff4c0 0, #ffc244 32%, #ff7a12 62%, #ff3c00 100%);
+                filter: blur(1.2px);
+            }
+            .flame__tongue--l {
+                margin-left: -46px;
+                width: 32px;
+                height: 32px;
+                animation-duration: 1.1s;
+                animation-delay: -0.4s;
+            }
+            .flame__tongue--r {
+                margin-left: 12px;
+                width: 34px;
+                height: 34px;
+                animation-duration: 0.95s;
+                animation-delay: -0.7s;
+            }
+            .flame__tongue--core {
+                width: 24px;
+                height: 24px;
+                margin-left: -12px;
+                animation-duration: 0.8s;
+            }
+            .flame__tongue--core::before {
+                background: radial-gradient(circle at 50% 62%, #ffffff 0, #fff0b0 60%, #ffc244 100%);
+            }
+            .hearth.is-flare .hearth__glow {
+                animation: rr-flare 0.7s ease-out reverse;
+            }
+            .spark {
+                position: fixed;
+                width: 3px;
+                height: 3px;
+                border-radius: 50%;
+                background: #ffb14a;
+                box-shadow: 0 0 6px #ff7a12;
+                pointer-events: none;
+                z-index: 15;
+            }
+
+            /* 復讐札(完成した1枚の紙) */
+            .verdict {
+                margin-top: 24px;
+                width: 100%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                animation: rr-in 1.2s ease both;
+            }
+            .verdict__paper {
+                width: min(280px, 74vw);
+                height: clamp(290px, 44dvh, 400px);
+                padding: 26px 22px;
+                border-radius: 2px;
+                background: linear-gradient(160deg, var(--paper), var(--paper-dark));
+                color: var(--paper-ink);
+                box-shadow: 0 0 70px rgba(255, 138, 31, 0.14), 0 24px 50px rgba(0, 0, 0, 0.65);
+                display: flex;
+                justify-content: center;
+            }
+            .verdict__text {
+                margin: 0;
+                writing-mode: vertical-rl;
+                font-size: 17px;
+                font-weight: 600;
+                line-height: 2.3;
+                letter-spacing: 0.14em;
+            }
+            .verdict__text b {
+                font-weight: 800;
+                border-bottom: 1px solid var(--paper-ink);
+            }
+            .verdict__note {
+                margin: 20px 0 0;
+                font-size: 11px;
+                letter-spacing: 0.34em;
+                color: var(--ink-faint);
+                text-align: center;
+            }
+            .hold {
+                position: relative;
+                overflow: hidden;
+                margin-top: 22px;
+                background: none;
+                border: 1px solid var(--border);
+                padding: 16px 40px;
+                font-size: 14px;
+                letter-spacing: 0.34em;
+                color: var(--ink);
+                cursor: pointer;
+                touch-action: none;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            .hold__fill {
+                position: absolute;
+                inset: 0;
+                width: 0;
+                background: rgba(255, 140, 40, 0.24);
+            }
+            .hold__label {
+                position: relative;
+            }
+            .decided {
+                margin: 30px 0 0;
+                font-size: 20px;
+                letter-spacing: 0.4em;
+                color: var(--ink-bright);
+                animation: rr-in 1s ease both;
+            }
+            .link {
+                margin-top: 14px;
+                background: none;
+                border: none;
+                font-size: 12px;
+                letter-spacing: 0.3em;
+                color: var(--ink-faint);
+                cursor: pointer;
+                padding: 8px;
+            }
+            .link:hover {
+                color: var(--ink);
+            }
+            .mock-note {
+                margin: 8px 0 0;
+                font-size: 10px;
+                letter-spacing: 0.3em;
+                color: var(--ink-dim);
+                text-align: center;
+            }
+
+            /* PC: 護摩木を大きく一列に並べ、炉を広い空間の奥に据える */
+            @media (min-width: 880px) {
+                :root {
+                    --k: 1.5;
+                }
+                .app {
+                    padding-top: 44px;
+                }
+                .sentence {
+                    max-width: 720px;
+                    font-size: 19px;
+                }
+                .stage {
+                    margin-top: 40px;
+                }
+                .hand {
+                    max-width: 860px;
+                    margin-top: 44px;
+                    gap: 16px 18px;
+                }
+                .tablet {
+                    --w: 66px;
+                    font-size: 18px;
+                }
+                .tablet__body {
+                    padding-top: 28px;
+                    clip-path: polygon(0 14px, 50% 0, 100% 14px, 100% 100%, 0 100%);
+                }
+                .hearth {
+                    width: 360px;
+                    height: 200px;
+                }
+                .hearth__glow {
+                    width: 480px;
+                    height: 320px;
+                    margin-left: -240px;
+                }
+                .hearth__bowl {
+                    height: 52px;
+                }
+                .hearth__log {
+                    bottom: 34px;
+                    width: 140px;
+                    height: 17px;
+                    margin-left: -70px;
+                }
+                .flame {
+                    bottom: 42px;
+                }
+                .verdict__paper {
+                    width: 320px;
+                    height: clamp(340px, 46dvh, 460px);
+                }
+                .verdict__text {
+                    font-size: 22px;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="floor" aria-hidden="true"></div>
+
+        <main class="app">
+            <p class="sentence" id="sentence" aria-label="組み上がる復讐"></p>
+
+            <section class="stage" id="stage" aria-live="polite">
+                <p class="stage__mark" id="stageMark"></p>
+                <h1 class="stage__title" id="stageTitle"></h1>
+                <div class="hand" id="hand"></div>
+            </section>
+
+            <section class="verdict" id="verdict" hidden>
+                <div class="verdict__paper"><p class="verdict__text" id="verdictText"></p></div>
+                <button type="button" class="hold" id="hold">
+                    <span class="hold__fill" id="holdFill"></span>
+                    <span class="hold__label">長 押 し し て 、 決 め る</span>
+                </button>
+                <p class="decided" id="decided" hidden>決 ま っ た 。</p>
+                <p class="verdict__note" id="verdictNote">これが、お前の復讐だ。</p>
+                <button type="button" class="link" id="redo">選 び 直 す</button>
+            </section>
+
+            <div class="hearth" id="hearth" aria-hidden="true">
+                <div class="hearth__glow"></div>
+                <div class="hearth__bowl"></div>
+                <div class="hearth__log hearth__log--a"></div>
+                <div class="hearth__log hearth__log--b"></div>
+                <div class="flame" id="flame">
+                    <i class="flame__tongue flame__tongue--l"></i>
+                    <i class="flame__tongue flame__tongue--r"></i>
+                    <i class="flame__tongue"></i>
+                    <i class="flame__tongue flame__tongue--core"></i>
+                </div>
+            </div>
+
+            <p class="mock-note">モック ・ 本編ではここから儀式へ進む</p>
+        </main>
+
+        <script>
+            // 「言葉」は復讐の手段だと伝わるよう「手段」に改めた。動詞・縛りは既存の constants/revenge.ts と同じ
+            const STAGES = [
+                {
+                    label: '相手',
+                    mark: '壱 ・ 相 手',
+                    title: '誰に、<br />やられた。',
+                    items: ['上司', '同僚', '友人', '家族', '恋人', '見知らぬ人'],
+                },
+                {
+                    label: '所業',
+                    mark: '弐 ・ 所 業',
+                    title: '何を、<br />された。',
+                    items: ['無視された', '約束を破られた', '見下された', '手柄を奪われた', '待たされた', '嘘をつかれた'],
+                },
+                {
+                    label: '手段',
+                    mark: '参 ・ 手 段',
+                    title: 'どう、報いる。',
+                    note: '意味は、自分で決める。',
+                    items: ['返す', '拒む', '奪う', '離れる', '待たせる', '超える', '無視する', '取り戻す'],
+                },
+                {
+                    label: '縛り',
+                    mark: '肆 ・ 縛 り',
+                    title: '一つの縛りを<br />課す。',
+                    items: ['今日中に実行する', 'お金を使わない', '言葉を使わない', '十分以内で実行する', '相手に直接連絡しない'],
+                },
+            ];
+            // 空欄の直後に付く句読。最後の空欄の後は句点のみ
+            const SENTENCE_TAILS = ['に、', '。だから、', '。ただし、', '。'];
+
+            const FLIGHT_MS = 800;
+            const HOLD_MS = 2200;
+            const BLAZE_LEVEL = 5;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const root = document.documentElement;
+            const sentenceEl = document.getElementById('sentence');
+            const stageEl = document.getElementById('stage');
+            const handEl = document.getElementById('hand');
+            const verdictEl = document.getElementById('verdict');
+            const hearthEl = document.getElementById('hearth');
+            const flameEl = document.getElementById('flame');
+            const holdEl = document.getElementById('hold');
+            const holdFillEl = document.getElementById('holdFill');
+            const decidedEl = document.getElementById('decided');
+            const verdictNoteEl = document.getElementById('verdictNote');
+
+            let stageIndex = 0;
+            let picks = [];
+            let flightTimer = null;
+
+            function setLevel(level) {
+                root.style.setProperty('--lv', String(level));
+            }
+
+            function renderSentence() {
+                sentenceEl.innerHTML = '';
+                STAGES.forEach((stage, i) => {
+                    const filled = picks[i] != null;
+                    const blank = document.createElement('button');
+                    blank.type = 'button';
+                    blank.className = 'blank' + (filled ? ' is-filled' : '') + (i === stageIndex && !filled ? ' is-current' : '');
+                    blank.disabled = !filled;
+                    blank.textContent = filled ? picks[i] : stage.label;
+                    blank.setAttribute('aria-label', filled ? `${stage.label}: ${picks[i]}(選び直す)` : stage.label);
+                    blank.addEventListener('click', () => rewindTo(i));
+                    sentenceEl.append(blank, SENTENCE_TAILS[i]);
+                });
+            }
+
+            function renderStage() {
+                const stage = STAGES[stageIndex];
+                document.getElementById('stageMark').textContent = stage.mark;
+                document.getElementById('stageTitle').innerHTML =
+                    stage.title + (stage.note ? `<span class="stage__note">${stage.note}</span>` : '');
+
+                const maxChars = Math.max(...stage.items.map((s) => s.length));
+                handEl.classList.remove('is-locked');
+                handEl.innerHTML = '';
+                handEl.style.setProperty('--n', String(maxChars));
+                stage.items.forEach((label, i) => {
+                    const tablet = document.createElement('button');
+                    tablet.type = 'button';
+                    tablet.className = 'tablet';
+                    tablet.setAttribute('aria-label', label);
+                    // 手で並べたような、ごくわずかなばらつき
+                    const tilt = ((i * 37) % 5) - 2;
+                    tablet.style.cssText = `--i:${i};--tilt:${tilt * 0.9}deg;--n:${maxChars}`;
+                    tablet.innerHTML = `<span class="tablet__body"><span class="tablet__text"></span></span>`;
+                    tablet.querySelector('.tablet__text').textContent = label;
+                    tablet.addEventListener('click', () => feed(tablet, label));
+                    handEl.appendChild(tablet);
+                });
+
+                stageEl.style.animation = 'none';
+                void stageEl.offsetWidth;
+                stageEl.style.animation = '';
+                renderSentence();
+            }
+
+            // 選んだ護摩木を複製して炉まで飛ばす。元の板は残したまま隠し、位置ずれを避ける
+            function feed(tablet, label) {
+                handEl.classList.add('is-locked');
+                handEl.querySelectorAll('.tablet').forEach((t) => {
+                    if (t !== tablet) t.classList.add('is-dim');
+                });
+
+                const from = tablet.getBoundingClientRect();
+                const to = flameEl.getBoundingClientRect();
+                const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+                const dy = to.top + to.height * 0.45 - (from.top + from.height / 2);
+
+                const clone = tablet.cloneNode(true);
+                clone.classList.add('tablet--flying');
+                clone.style.left = `${from.left}px`;
+                clone.style.top = `${from.top}px`;
+                clone.style.width = `${from.width}px`;
+                clone.style.height = `${from.height}px`;
+                document.body.appendChild(clone);
+                tablet.style.visibility = 'hidden';
+
+                const duration = reduceMotion ? 1 : FLIGHT_MS;
+                const flight = clone.animate(
+                    [
+                        { transform: 'translate(0, 0) scale(1)', opacity: 1, offset: 0 },
+                        { transform: `translate(${dx * 0.1}px, -46px) scale(1.1)`, opacity: 1, offset: 0.25 },
+                        { transform: `translate(${dx}px, ${dy}px) rotate(40deg) scale(0.35)`, opacity: 0, offset: 1 },
+                    ],
+                    { duration, easing: 'cubic-bezier(0.45, 0, 0.75, 0.55)', fill: 'forwards' },
+                );
+                flight.onfinish = () => {
+                    clone.remove();
+                    burstSparks(to);
+                    hearthEl.classList.remove('is-flare');
+                    void hearthEl.offsetWidth;
+                    hearthEl.classList.add('is-flare');
+                    picks[stageIndex] = label;
+                    setLevel(picks.length);
+                    flightTimer = setTimeout(advance, reduceMotion ? 0 : 500);
+                };
+            }
+
+            function advance() {
+                if (stageIndex < STAGES.length - 1) {
+                    stageIndex += 1;
+                    renderStage();
+                } else {
+                    showVerdict();
+                }
+            }
+
+            function burstSparks(target) {
+                if (reduceMotion) return;
+                const originX = target.left + target.width / 2;
+                const originY = target.top + target.height * 0.5;
+                for (let i = 0; i < 9; i += 1) {
+                    const spark = document.createElement('i');
+                    spark.className = 'spark';
+                    spark.style.left = `${originX}px`;
+                    spark.style.top = `${originY}px`;
+                    document.body.appendChild(spark);
+                    const driftX = (Math.random() - 0.5) * 90;
+                    const rise = 70 + Math.random() * 90;
+                    spark
+                        .animate(
+                            [
+                                { transform: 'translate(0, 0)', opacity: 1 },
+                                { transform: `translate(${driftX}px, ${-rise}px)`, opacity: 0 },
+                            ],
+                            { duration: 700 + Math.random() * 500, easing: 'ease-out' },
+                        )
+                        .finished.then(() => spark.remove());
+                }
+            }
+
+            function rewindTo(index) {
+                clearTimeout(flightTimer);
+                picks = picks.slice(0, index);
+                stageIndex = index;
+                setLevel(picks.length);
+                stageEl.hidden = false;
+                verdictEl.hidden = true;
+                sentenceEl.style.opacity = '';
+                resetHold();
+                renderStage();
+            }
+
+            function showVerdict() {
+                const [who, harm, verb, constraint] = picks;
+                document.getElementById('verdictText').innerHTML =
+                    `<b>${who}</b>に、${harm}。<br />だから、<b>${verb}</b>。<br />ただし、${constraint}。`;
+                stageEl.hidden = true;
+                verdictEl.hidden = false;
+                sentenceEl.style.opacity = '0.3';
+                renderSentence();
+            }
+
+            // 長押し確定: 押している間だけ満ちる。離すと戻り、誤操作では決まらない
+            let holdStart = 0;
+            let holdRaf = 0;
+            function resetHold() {
+                cancelAnimationFrame(holdRaf);
+                holdStart = 0;
+                holdFillEl.style.transition = 'width 0.4s';
+                holdFillEl.style.width = '0';
+                decidedEl.hidden = true;
+                holdEl.hidden = false;
+                verdictNoteEl.hidden = false;
+            }
+            function holdTick() {
+                const ratio = Math.min((performance.now() - holdStart) / HOLD_MS, 1);
+                holdFillEl.style.width = `${ratio * 100}%`;
+                if (ratio >= 1) {
+                    holdStart = 0;
+                    holdEl.hidden = true;
+                    decidedEl.hidden = false;
+                    verdictNoteEl.hidden = true;
+                    setLevel(BLAZE_LEVEL);
+                    return;
+                }
+                holdRaf = requestAnimationFrame(holdTick);
+            }
+            function beginHold() {
+                if (holdStart) return;
+                holdFillEl.style.transition = 'none';
+                holdStart = performance.now();
+                holdRaf = requestAnimationFrame(holdTick);
+            }
+            function endHold() {
+                if (!holdStart) return;
+                cancelAnimationFrame(holdRaf);
+                holdStart = 0;
+                holdFillEl.style.transition = 'width 0.4s';
+                holdFillEl.style.width = '0';
+            }
+            holdEl.addEventListener('pointerdown', beginHold);
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => holdEl.addEventListener(t, endHold));
+            holdEl.addEventListener('keydown', (e) => {
+                if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+                    e.preventDefault();
+                    beginHold();
+                }
+            });
+            holdEl.addEventListener('keyup', endHold);
+            holdEl.addEventListener('blur', endHold);
+
+            document.getElementById('redo').addEventListener('click', () => rewindTo(0));
+
+            renderStage();
+        </script>
+    </body>
+</html>

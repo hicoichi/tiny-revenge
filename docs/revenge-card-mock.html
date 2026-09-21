@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>焚恨録 カード選択モック</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg: #0b0a09;
+                --bg-deep: #050505;
+                --bg-glow: #1c1a17;
+                --ink: #d7cfc0;
+                --ink-bright: #f0e7d4;
+                --ink-faint: #6a6252;
+                --ink-dim: #4a453c;
+                --border: #4a443a;
+                --border-selected: #8a7443;
+                --gold: #c9a227;
+                --gold-bright: #e6c04f;
+                --paper: #efe7d5;
+                --paper-dark: #ddd3bc;
+                --paper-ink: #2a251c;
+                --flame: #ff8a1f;
+                --font: 'Shippori Mincho B1', serif;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+                background: radial-gradient(ellipse at 50% 30%, var(--bg-glow), var(--bg) 55%, var(--bg-deep));
+                color: var(--ink);
+                font-family: var(--font);
+                -webkit-font-smoothing: antialiased;
+            }
+            button {
+                font-family: inherit;
+                color: inherit;
+            }
+            button:focus-visible {
+                outline: 2px solid var(--gold);
+                outline-offset: 3px;
+            }
+            [hidden] {
+                display: none !important;
+            }
+
+            @keyframes rr-in {
+                from { opacity: 0; transform: translateY(14px); }
+                to { opacity: 1; transform: none; }
+            }
+            @keyframes rr-deal {
+                from { opacity: 0; transform: translateY(40px) rotate(0deg) scale(0.92); }
+                to { opacity: 1; transform: translateY(var(--y, 0)) rotate(var(--r, 0deg)); }
+            }
+            @keyframes rr-pop {
+                0% { transform: scale(0.86); }
+                60% { transform: scale(1.06); }
+                100% { transform: scale(1); }
+            }
+
+            .app {
+                min-height: 100vh;
+                min-height: 100dvh;
+                max-width: 1040px;
+                margin: 0 auto;
+                padding: 28px 16px 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* 組み上がる4枚の札。SPでは小さく上部に、PCでは大きく並べる */
+            .spread {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 72px));
+                gap: 8px;
+                justify-content: center;
+                width: 100%;
+                transition: opacity 0.8s;
+            }
+            .slot {
+                aspect-ratio: 1 / 1.8;
+                border: 1px dashed var(--border);
+                border-radius: 4px;
+                background: none;
+                padding: 8px 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: default;
+                color: var(--ink-dim);
+                transition: border-color 0.5s, color 0.5s;
+            }
+            .slot__text {
+                writing-mode: vertical-rl;
+                font-size: 11px;
+                line-height: 1.5;
+                letter-spacing: 0.14em;
+                max-height: 100%;
+            }
+            .slot.is-current {
+                border-color: var(--border-selected);
+                color: var(--gold);
+            }
+            .slot.is-filled {
+                border-style: solid;
+                border-color: #b9ad92;
+                background: linear-gradient(160deg, var(--paper), var(--paper-dark));
+                color: var(--paper-ink);
+                font-weight: 600;
+                cursor: pointer;
+                animation: rr-pop 0.5s ease both;
+            }
+
+            .stage {
+                margin-top: 34px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                animation: rr-in 0.9s ease both;
+            }
+            .stage__mark {
+                margin: 0;
+                font-size: 11px;
+                letter-spacing: 0.42em;
+                color: var(--ink-faint);
+            }
+            .stage__title {
+                margin: 22px 0 0;
+                font-size: clamp(22px, 5.4vw, 30px);
+                font-weight: 600;
+                line-height: 1.8;
+                letter-spacing: 0.12em;
+                text-align: center;
+                color: var(--ink-bright);
+            }
+            .stage__note {
+                display: block;
+                margin-top: 4px;
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.3em;
+                color: var(--ink-faint);
+            }
+
+            /* 手札。SPは3列のグリッド、PCは扇状に広げる */
+            .hand {
+                margin-top: 30px;
+                width: 100%;
+                max-width: 420px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .card {
+                aspect-ratio: 1 / 1.7;
+                border: 1px solid #b9ad92;
+                border-radius: 4px;
+                background: linear-gradient(160deg, var(--paper), var(--paper-dark));
+                color: var(--paper-ink);
+                box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55), inset 0 0 0 4px var(--paper),
+                    inset 0 0 0 5px rgba(150, 130, 90, 0.5);
+                padding: 14px 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                animation: rr-deal 0.7s ease backwards;
+                animation-delay: calc(var(--i) * 70ms);
+                transition: transform 0.45s, opacity 0.45s, filter 0.45s, box-shadow 0.45s;
+            }
+            .card__text {
+                writing-mode: vertical-rl;
+                font-size: 17px;
+                font-weight: 600;
+                line-height: 1.5;
+                letter-spacing: 0.16em;
+                max-height: 100%;
+            }
+            .card.is-picked {
+                transform: translateY(-18px) scale(1.05);
+                box-shadow: 0 0 34px rgba(201, 162, 39, 0.4), 0 14px 26px rgba(0, 0, 0, 0.6),
+                    inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--gold);
+            }
+            .card.is-dim {
+                opacity: 0.22;
+                filter: grayscale(1);
+            }
+            .hand.is-locked .card {
+                pointer-events: none;
+            }
+            @media (hover: hover) {
+                .card:hover:not(.is-picked):not(.is-dim) {
+                    transform: translateY(-8px);
+                }
+            }
+
+            /* 復讐札(完成した1枚の紙) */
+            .verdict {
+                margin-top: 34px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                animation: rr-in 1.2s ease both;
+            }
+            .verdict__paper {
+                width: min(300px, 78vw);
+                height: min(400px, 62vh);
+                padding: 30px 26px;
+                border-radius: 2px;
+                background: linear-gradient(160deg, var(--paper), var(--paper-dark));
+                color: var(--paper-ink);
+                box-shadow: 0 0 70px rgba(255, 138, 31, 0.12), 0 24px 50px rgba(0, 0, 0, 0.65);
+                display: flex;
+                justify-content: center;
+            }
+            .verdict__text {
+                margin: 0;
+                writing-mode: vertical-rl;
+                font-size: 20px;
+                font-weight: 600;
+                line-height: 2.3;
+                letter-spacing: 0.14em;
+            }
+            .verdict__text b {
+                font-weight: 800;
+                border-bottom: 1px solid var(--paper-ink);
+            }
+            .verdict__note {
+                margin: 26px 0 0;
+                font-size: 11px;
+                letter-spacing: 0.34em;
+                color: var(--ink-faint);
+                text-align: center;
+            }
+
+            /* 長押しで確定するボタン */
+            .hold {
+                position: relative;
+                overflow: hidden;
+                margin-top: 22px;
+                background: none;
+                border: 1px solid var(--border);
+                padding: 16px 44px;
+                font-size: 14px;
+                letter-spacing: 0.34em;
+                color: var(--ink);
+                cursor: pointer;
+                touch-action: none;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            .hold__fill {
+                position: absolute;
+                inset: 0;
+                width: 0;
+                background: rgba(255, 140, 40, 0.22);
+            }
+            .hold__label {
+                position: relative;
+            }
+            .decided {
+                margin: 30px 0 0;
+                font-size: 20px;
+                letter-spacing: 0.4em;
+                color: var(--ink-bright);
+                animation: rr-in 1s ease both;
+            }
+            .link {
+                margin-top: 22px;
+                background: none;
+                border: none;
+                font-size: 12px;
+                letter-spacing: 0.3em;
+                color: var(--ink-faint);
+                cursor: pointer;
+                padding: 8px;
+            }
+            .link:hover {
+                color: var(--ink);
+            }
+            .mock-note {
+                margin-top: auto;
+                padding-top: 36px;
+                font-size: 10px;
+                letter-spacing: 0.3em;
+                color: var(--ink-dim);
+                text-align: center;
+            }
+
+            /* PC: 札を大きくし、手札を扇状に広げて卓を囲むような空間にする */
+            @media (min-width: 880px) {
+                .app {
+                    padding-top: 44px;
+                }
+                .spread {
+                    grid-template-columns: repeat(4, 112px);
+                    gap: 18px;
+                }
+                .slot {
+                    padding: 12px 6px;
+                }
+                .slot__text {
+                    font-size: 15px;
+                }
+                .stage {
+                    margin-top: 56px;
+                }
+                .hand {
+                    max-width: none;
+                    display: flex;
+                    justify-content: center;
+                    gap: 0;
+                    margin-top: 56px;
+                }
+                .card {
+                    --r: var(--fr, 0deg);
+                    --y: var(--fy, 0px);
+                    width: 128px;
+                    flex: none;
+                    margin-inline: -8px;
+                    padding: 18px 10px;
+                    transform: translateY(var(--y, 0)) rotate(var(--r, 0deg));
+                    transform-origin: 50% 130%;
+                }
+                .card__text {
+                    font-size: 19px;
+                }
+                .card.is-picked {
+                    transform: translateY(calc(var(--y, 0px) - 34px)) rotate(0deg) scale(1.08);
+                    z-index: 2;
+                }
+                .card:hover:not(.is-picked):not(.is-dim) {
+                    transform: translateY(calc(var(--y, 0px) - 16px)) rotate(var(--r, 0deg));
+                    z-index: 1;
+                }
+                .verdict__paper {
+                    width: 340px;
+                    height: 460px;
+                }
+                .verdict__text {
+                    font-size: 23px;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main class="app">
+            <div class="spread" id="spread" aria-label="組み上がる復讐"></div>
+
+            <section class="stage" id="stage" aria-live="polite">
+                <p class="stage__mark" id="stageMark"></p>
+                <h1 class="stage__title" id="stageTitle"></h1>
+                <div class="hand" id="hand"></div>
+            </section>
+
+            <section class="verdict" id="verdict" hidden>
+                <div class="verdict__paper"><p class="verdict__text" id="verdictText"></p></div>
+                <button type="button" class="hold" id="hold">
+                    <span class="hold__fill" id="holdFill"></span>
+                    <span class="hold__label">長 押 し し て 、 決 め る</span>
+                </button>
+                <p class="decided" id="decided" hidden>決 ま っ た 。</p>
+                <p class="verdict__note" id="verdictNote">これが、お前の復讐だ。</p>
+                <button type="button" class="link" id="redo">選 び 直 す</button>
+            </section>
+
+            <p class="mock-note">モック ・ 本編ではここから儀式へ進む</p>
+        </main>
+
+        <script>
+            // 選択肢の一部は既存の constants/revenge.ts(動詞・縛り)と同じ。相手・所業のみ新規の叩き台
+            const STAGES = [
+                {
+                    key: 'who',
+                    label: '相手',
+                    mark: '壱 ・ 相 手',
+                    title: '誰に、<br />やられた。',
+                    cards: ['上司', '同僚', '友人', '家族', '恋人', '見知らぬ人'],
+                },
+                {
+                    key: 'harm',
+                    label: '所業',
+                    mark: '弐 ・ 所 業',
+                    title: '何を、<br />された。',
+                    cards: ['無視された', '約束を破られた', '見下された', '手柄を奪われた', '待たされた', '嘘をつかれた'],
+                },
+                {
+                    key: 'verb',
+                    label: '言葉',
+                    mark: '参 ・ 言 葉',
+                    title: '一つの言葉を選べ。',
+                    note: '意味は、自分で決める。',
+                    cards: ['返す', '拒む', '奪う', '離れる', '待たせる', '超える', '無視する', '取り戻す'],
+                },
+                {
+                    key: 'constraint',
+                    label: '縛り',
+                    mark: '肆 ・ 縛 り',
+                    title: '一つの縛りを<br />課す。',
+                    cards: ['今日中に実行する', 'お金を使わない', '言葉を使わない', '十分以内で実行する', '相手に直接連絡しない'],
+                },
+            ];
+
+            const PICK_DELAY_MS = 650;
+            const HOLD_MS = 2200;
+
+            const spreadEl = document.getElementById('spread');
+            const stageEl = document.getElementById('stage');
+            const handEl = document.getElementById('hand');
+            const verdictEl = document.getElementById('verdict');
+            const holdEl = document.getElementById('hold');
+            const holdFillEl = document.getElementById('holdFill');
+            const decidedEl = document.getElementById('decided');
+
+            let stageIndex = 0;
+            let picks = [];
+            let pickTimer = null;
+
+            function renderSpread() {
+                spreadEl.innerHTML = '';
+                STAGES.forEach((stage, i) => {
+                    const filled = picks[i] != null;
+                    const slot = document.createElement('button');
+                    slot.type = 'button';
+                    slot.className = 'slot' + (filled ? ' is-filled' : '') + (i === stageIndex && !filled ? ' is-current' : '');
+                    slot.disabled = !filled;
+                    slot.setAttribute('aria-label', filled ? `${stage.label}: ${picks[i]}(選び直す)` : stage.label);
+                    const text = document.createElement('span');
+                    text.className = 'slot__text';
+                    text.textContent = filled ? picks[i] : stage.label;
+                    slot.appendChild(text);
+                    slot.addEventListener('click', () => rewindTo(i));
+                    spreadEl.appendChild(slot);
+                });
+            }
+
+            // 扇状の角度と高さは枚数に応じて決める。--fr/--fy はPCのメディアクエリ内でのみ --r/--y に反映する
+            function fanStyle(index, total) {
+                const mid = (total - 1) / 2;
+                const offset = index - mid;
+                const angle = offset * 4.5;
+                const drop = Math.abs(offset) * Math.abs(offset) * 2.2;
+                return `--i:${index};--fr:${angle}deg;--fy:${drop}px`;
+            }
+
+            function renderStage() {
+                const stage = STAGES[stageIndex];
+                document.getElementById('stageMark').textContent = stage.mark;
+                document.getElementById('stageTitle').innerHTML =
+                    stage.title + (stage.note ? `<span class="stage__note">${stage.note}</span>` : '');
+                handEl.classList.remove('is-locked');
+                handEl.innerHTML = '';
+                stage.cards.forEach((label, i) => {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = 'card';
+                    card.style.cssText = fanStyle(i, stage.cards.length);
+                    const text = document.createElement('span');
+                    text.className = 'card__text';
+                    text.textContent = label;
+                    card.appendChild(text);
+                    card.addEventListener('click', () => pick(card, label));
+                    handEl.appendChild(card);
+                });
+                stageEl.style.animation = 'none';
+                void stageEl.offsetWidth;
+                stageEl.style.animation = '';
+                renderSpread();
+            }
+
+            function pick(card, label) {
+                handEl.classList.add('is-locked');
+                card.classList.add('is-picked');
+                handEl.querySelectorAll('.card').forEach((c) => {
+                    if (c !== card) c.classList.add('is-dim');
+                });
+                pickTimer = setTimeout(() => {
+                    picks[stageIndex] = label;
+                    if (stageIndex < STAGES.length - 1) {
+                        stageIndex += 1;
+                        renderStage();
+                    } else {
+                        showVerdict();
+                    }
+                }, PICK_DELAY_MS);
+            }
+
+            function rewindTo(index) {
+                clearTimeout(pickTimer);
+                picks = picks.slice(0, index);
+                stageIndex = index;
+                stageEl.hidden = false;
+                verdictEl.hidden = true;
+                spreadEl.style.opacity = '';
+                resetHold();
+                renderStage();
+            }
+
+            function showVerdict() {
+                const [who, harm, verb, constraint] = picks;
+                document.getElementById('verdictText').innerHTML =
+                    `<b>${who}</b>に、${harm}。<br />だから、<b>${verb}</b>。<br />ただし、${constraint}。`;
+                stageEl.hidden = true;
+                verdictEl.hidden = false;
+                spreadEl.style.opacity = '0.35';
+                renderSpread();
+            }
+
+            // 長押し確定: 押している間だけ満ちる。離す・外れると戻る(誤操作で決まらないようにする)
+            let holdStart = 0;
+            let holdRaf = 0;
+            function resetHold() {
+                cancelAnimationFrame(holdRaf);
+                holdStart = 0;
+                holdFillEl.style.transition = 'width 0.4s';
+                holdFillEl.style.width = '0';
+                decidedEl.hidden = true;
+                holdEl.hidden = false;
+                document.getElementById('verdictNote').hidden = false;
+            }
+            function holdTick() {
+                const ratio = Math.min((performance.now() - holdStart) / HOLD_MS, 1);
+                holdFillEl.style.width = `${ratio * 100}%`;
+                if (ratio >= 1) {
+                    holdStart = 0;
+                    holdEl.hidden = true;
+                    decidedEl.hidden = false;
+                    document.getElementById('verdictNote').hidden = true;
+                    return;
+                }
+                holdRaf = requestAnimationFrame(holdTick);
+            }
+            function beginHold() {
+                if (holdStart) return;
+                holdFillEl.style.transition = 'none';
+                holdStart = performance.now();
+                holdRaf = requestAnimationFrame(holdTick);
+            }
+            function endHold() {
+                if (!holdStart) return;
+                cancelAnimationFrame(holdRaf);
+                holdStart = 0;
+                holdFillEl.style.transition = 'width 0.4s';
+                holdFillEl.style.width = '0';
+            }
+            holdEl.addEventListener('pointerdown', beginHold);
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => holdEl.addEventListener(t, endHold));
+            holdEl.addEventListener('keydown', (e) => {
+                if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+                    e.preventDefault();
+                    beginHold();
+                }
+            });
+            holdEl.addEventListener('keyup', endHold);
+            holdEl.addEventListener('blur', endHold);
+
+            document.getElementById('redo').addEventListener('click', () => rewindTo(0));
+
+            renderStage();
+        </script>
+    </body>
+</html>

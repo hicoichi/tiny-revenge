@@ -39,15 +39,6 @@ export function useRitualAnimation() {
         });
     }
 
-    function raisePaper(el: HTMLElement) {
-        return tweenTo(el, {
-            y: -58,
-            scale: 0.86,
-            duration: 2.8,
-            ease: 'power2.inOut',
-        });
-    }
-
     // 紙に火が触れた瞬間の一瞬の明るいフラッシュ。
     function igniteFlash(el: HTMLElement) {
         return new Promise<void>((resolve) => {
@@ -102,82 +93,24 @@ export function useRitualAnimation() {
         });
     }
 
-    // 燃え進むにつれて紙全体がわずかに縮んでいく。
-    function shrinkPaper(el: HTMLElement, targetScale: number, durationMs: number) {
-        return gsap.to(el, {
-            scale: targetScale,
-            duration: durationMs / 1000,
-            ease: 'power1.in',
-        });
-    }
-
     function fadeOutPaper(el: HTMLElement) {
         return tweenTo(el, { opacity: 0, duration: 0.6 });
     }
 
     // 保存状態からの復元時など、演出を再生せずに休止状態の見た目へ即座に合わせる。
-    function settlePaper(el: HTMLElement, phase: 'ready' | 'raised') {
-        if (phase === 'raised') {
-            gsap.set(el, { opacity: 1, y: -58, scale: 0.86, rotateX: 0 });
-        } else {
-            gsap.set(el, { opacity: 1, y: 0, scale: 1, rotateX: 0 });
-        }
+    function settlePaper(el: HTMLElement) {
+        gsap.set(el, { opacity: 1, y: 0, scale: 1, rotateX: 0 });
     }
 
-    // 炎は表示されている間ずっと揺らぎ続けるループアニメーション。完了しないため呼び切りで良い。
-    function loopFlame(el: HTMLElement) {
+    // 炎の勢いを power(0=待機 〜 1=燃え盛る)で切り替える。待機中は紙の定位置と重ならない
+    // 大きさに抑え、power が上がるほど大きく明るくなる。護摩木をくべる段階的な成長にも使う。
+    function flareFlame(el: HTMLElement, power: number) {
         return gsap.to(el, {
-            scaleY: 1.15,
-            scaleX: 0.95,
-            opacity: 1,
-            duration: 1.1,
-            ease: 'sine.inOut',
-            yoyo: true,
-            repeat: -1,
+            scale: 1.2 + power * 1.2,
+            opacity: 0.78 + power * 0.22,
+            duration: power > 0 ? 0.8 : 1,
+            ease: power > 0 ? 'back.out(2)' : 'power1.out',
         });
-    }
-
-    // 炎の勢いを切り替える。待機中は紙の定位置と重ならない大きさに抑え、
-    // 紙が触れたら一気に、より大きく燃え上がらせる。
-    function flareFlame(el: HTMLElement, active: boolean) {
-        return gsap.to(el, {
-            scale: active ? 1.2 : 0.52,
-            opacity: active ? 1 : 0.78,
-            duration: active ? 0.8 : 1,
-            ease: active ? 'back.out(2)' : 'power1.out',
-        });
-    }
-
-    // 炎の「舌」1本を、毎回ランダムな形へ素早く揺らし続ける。
-    // 複数本をそれぞれ違うタイミング・速さで動かすことで、荒々しく燃え盛る炎に見せる。
-    function loopFlameTongue(el: HTMLElement, seed = 0): LoopController {
-        const rand = gsap.utils.random;
-        let alive = true;
-        let current: gsap.core.Tween | null = null;
-
-        function cycle() {
-            if (!alive) return;
-            current = gsap.to(el, {
-                scaleY: rand(0.5, 1.75),
-                scaleX: rand(0.72, 1.3),
-                x: rand(-16, 16),
-                y: rand(-18, 6),
-                rotate: rand(-11, 11),
-                opacity: rand(0.75, 1),
-                duration: rand(0.22, 0.5),
-                ease: 'sine.inOut',
-                onComplete: cycle,
-            });
-        }
-
-        gsap.delayedCall(seed * 0.08, cycle);
-
-        return {
-            kill: () => {
-                alive = false;
-                current?.kill();
-            },
-        };
     }
 
     // 炎全体を照らす光を不規則に明滅させ、燃え盛る勢いの余韻を周囲にも感じさせる。
@@ -207,39 +140,80 @@ export function useRitualAnimation() {
         };
     }
 
-    // 根元から立ち上る火の粉。上昇しながらランダムに左右へ漂い、消えてはまた現れる。
-    function loopEmber(el: HTMLElement, seed = 0): LoopController {
+    // 炉に護摩木がくべられた瞬間に散る火の粉。
+    function burstSparks(x: number, y: number) {
         const rand = gsap.utils.random;
-        let alive = true;
-        let current: gsap.core.Tween | null = null;
-
-        function cycle() {
-            if (!alive) return;
-            const startX = rand(-18, 18);
-            const midX = startX + rand(-22, 22);
-            const endX = midX + rand(-18, 18);
-            gsap.set(el, { x: startX, y: 6, opacity: 0, scale: rand(0.6, 1.1) });
-            current = gsap.to(el, {
-                keyframes: {
-                    y: [-30, -120, -230],
-                    x: [startX, midX, endX],
-                    opacity: [0, 1, 0],
-                },
-                duration: rand(1.2, 1.9),
-                ease: 'power1.out',
-                onComplete: cycle,
+        for (let i = 0; i < 9; i += 1) {
+            const spark = document.createElement('i');
+            Object.assign(spark.style, {
+                position: 'fixed',
+                left: `${x}px`,
+                top: `${y}px`,
+                width: '3px',
+                height: '3px',
+                borderRadius: '50%',
+                background: '#ffb14a',
+                boxShadow: '0 0 6px #ff7a12',
+                pointerEvents: 'none',
+                zIndex: '15',
+            });
+            document.body.appendChild(spark);
+            gsap.to(spark, {
+                x: rand(-45, 45),
+                y: -rand(70, 160),
+                opacity: 0,
+                duration: rand(0.7, 1.2),
+                ease: 'power2.out',
+                onComplete: () => spark.remove(),
             });
         }
+    }
 
-        gsap.delayedCall(seed * 0.28, cycle);
+    // 選んだ護摩木を複製して炉へ飛ばす。元の板は残したまま隠すことで、
+    // 選択肢の並びがずれず、飛行中も手札の配置が変わらない。
+    function offerGomagi(source: HTMLElement, fireRect: DOMRect): Promise<void> {
+        const from = source.getBoundingClientRect();
+        const clone = source.cloneNode(true) as HTMLElement;
+        // 複製にも配置アニメーション(CSS)が再生されてしまうため、明示的に止める。
+        Object.assign(clone.style, {
+            position: 'fixed',
+            left: `${from.left}px`,
+            top: `${from.top}px`,
+            width: `${from.width}px`,
+            height: `${from.height}px`,
+            margin: '0',
+            zIndex: '20',
+            pointerEvents: 'none',
+            animation: 'none',
+            transition: 'none',
+        });
+        document.body.appendChild(clone);
+        source.style.visibility = 'hidden';
 
-        return {
-            kill: () => {
-                alive = false;
-                current?.kill();
-                gsap.killTweensOf(el);
-            },
-        };
+        const fireX = fireRect.left + fireRect.width / 2;
+        const fireY = fireRect.top + fireRect.height / 2;
+        const dx = fireX - (from.left + from.width / 2);
+        const dy = fireY - (from.top + from.height / 2);
+
+        return new Promise((resolve) => {
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    clone.remove();
+                    burstSparks(fireX, fireY);
+                    resolve();
+                },
+            });
+            tl.to(clone, { y: -46, scale: 1.1, duration: 0.2, ease: 'power2.out' });
+            tl.to(clone, {
+                x: dx,
+                y: dy,
+                rotation: 40,
+                scale: 0.35,
+                opacity: 0,
+                duration: 0.6,
+                ease: 'power2.in',
+            });
+        });
     }
 
     function scatterAsh(els: HTMLElement[]) {
@@ -260,19 +234,15 @@ export function useRitualAnimation() {
     return {
         appearPaper,
         fadeInText,
-        raisePaper,
         igniteFlash,
         setBurnOrigin,
         growBurnFront,
         warpPaper,
-        shrinkPaper,
         fadeOutPaper,
         settlePaper,
-        loopFlame,
         flareFlame,
-        loopFlameTongue,
+        offerGomagi,
         loopGlowFlicker,
-        loopEmber,
         scatterAsh,
     };
 }
