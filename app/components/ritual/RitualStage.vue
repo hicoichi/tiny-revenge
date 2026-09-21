@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { HOLD_COMPLETE_MS, HOLD_RAISE_MS } from '~/constants/revenge';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRitual } from '~/composables/useRitual';
@@ -8,7 +8,10 @@ import type { RitePhase } from '~/types/revenge';
 const revenge = useRevenge();
 const ritual = useRitual();
 
-const showFlame = computed(() =>
+const flameAnchorEl = ref<HTMLElement | null>(null);
+
+// 炎は儀式に入った時点から灯っており、紙が触れる段階で勢いを増す。
+const flaring = computed(() =>
     (['ignite', 'burn', 'ash'] as RitePhase[]).includes(ritual.ritePhase.value),
 );
 const showAsh = computed(() => ritual.ritePhase.value === 'ash');
@@ -43,13 +46,15 @@ function complete() {
         <div class="stage__altar" />
         <div class="stage__altar-top" />
 
-        <RitualFlame v-if="showFlame" />
+        <div class="stage__flame-anchor" ref="flameAnchorEl" />
+        <RitualFlame :flaring="flaring" />
 
         <div class="stage__paper-wrap">
             <RitualPaper
                 :vow="revenge.vow.value"
                 :constraint-label="revenge.constraint.value ?? ''"
                 :verb-label="revenge.verb.value ?? ''"
+                :flame-target="flameAnchorEl"
             />
         </div>
 
@@ -83,6 +88,16 @@ function complete() {
     max-width: 660px;
     margin: 0 auto;
     overflow: hidden;
+    --rr-flame-bottom: 36vh;
+}
+
+.stage__flame-anchor {
+    position: absolute;
+    left: 50%;
+    bottom: var(--rr-flame-bottom);
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
 }
 
 .stage__glow {

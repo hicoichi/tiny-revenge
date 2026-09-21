@@ -52,31 +52,83 @@ export function useRitualAnimation() {
         });
     }
 
-    function dropPaper(el: HTMLElement) {
+    // 紙を炎の根元(anchorEl)へ落とす。現在の見た目上の位置に関わらず、
+    // 実際のDOM座標から必要な移動量を逆算するため、画面サイズが変わっても着地点がずれない。
+    function dropPaperInto(el: HTMLElement, anchorEl: HTMLElement) {
+        const paperRect = el.getBoundingClientRect();
+        const anchorRect = anchorEl.getBoundingClientRect();
+        const currentY = Number(gsap.getProperty(el, 'y')) || 0;
+        const naturalBottom = paperRect.bottom - currentY;
+        const targetY = anchorRect.top - naturalBottom + 14;
         return tweenTo(el, {
-            y: 250,
-            scale: 0.8,
-            rotate: -9,
-            duration: 1.1,
+            y: targetY,
+            scale: 0.76,
+            rotate: -10,
+            duration: 1.15,
             ease: 'power2.in',
         });
     }
 
-    function ignitePaper(el: HTMLElement) {
-        return tweenTo(el, {
-            filter: 'sepia(1) brightness(0.6)',
-            boxShadow: '0 22px 60px rgba(255,120,20,.45)',
-            duration: 1,
+    // 炎に触れた瞬間の一瞬の明るいフラッシュ。
+    function igniteFlash(el: HTMLElement) {
+        return new Promise<void>((resolve) => {
+            const tl = gsap.timeline({ onComplete: resolve });
+            tl.to(el, {
+                filter: 'brightness(1.7) saturate(1.4)',
+                duration: 0.16,
+                ease: 'power1.out',
+            });
+            tl.to(el, {
+                filter: 'brightness(1) saturate(1)',
+                duration: 0.5,
+                ease: 'power2.in',
+            });
+        });
+    }
+
+    // 「穴が開いて広がっていく」円の中心を、紙の着火点(下端中央)に合わせて初期化する。
+    function setBurnOrigin(circleEl: SVGCircleElement, cx: number, cy: number) {
+        gsap.set(circleEl, { attr: { cx, cy, r: 0 } });
+    }
+
+    // 穴の前線を表す円の半径を広げる。表面(cream)側と炭(char)側で
+    // durationMsは共通にし、delayMsをずらすことで「炭の縁」の幅を作る。
+    function growBurnFront(
+        circleEl: SVGCircleElement,
+        maxRadius: number,
+        durationMs: number,
+        delayMs = 0,
+    ) {
+        return tweenTo(circleEl, {
+            attr: { r: maxRadius },
+            duration: durationMs / 1000,
+            delay: delayMs / 1000,
             ease: 'power1.in',
         });
     }
 
-    function burnPaper(el: HTMLElement) {
-        return tweenTo(el, {
-            maskPosition: '0% 100%',
-            webkitMaskPosition: '0% 100%',
-            duration: 4.4,
-            ease: 'none',
+    // 熱で紙が反り、縁が波打つような継続ジッター。呼び出し側でkill()して止める。
+    function warpPaper(el: HTMLElement) {
+        return gsap.to(el, {
+            keyframes: [
+                { rotate: -10, skewX: 0 },
+                { rotate: -8.6, skewX: 1.3 },
+                { rotate: -11.3, skewX: -0.9 },
+                { rotate: -9.4, skewX: 0.7 },
+                { rotate: -10, skewX: 0 },
+            ],
+            duration: 2.8,
+            repeat: -1,
+            ease: 'sine.inOut',
+        });
+    }
+
+    // 燃え進むにつれて紙全体がわずかに縮んでいく。
+    function shrinkPaper(el: HTMLElement, targetScale: number, durationMs: number) {
+        return gsap.to(el, {
+            scale: targetScale,
+            duration: durationMs / 1000,
+            ease: 'power1.in',
         });
     }
 
@@ -106,6 +158,16 @@ export function useRitualAnimation() {
         });
     }
 
+    // 炎の勢いを切り替える(待機中は小さく、紙が触れたら大きく)。
+    function flareFlame(el: HTMLElement, active: boolean) {
+        return gsap.to(el, {
+            scale: active ? 1 : 0.55,
+            opacity: active ? 1 : 0.72,
+            duration: active ? 0.7 : 1,
+            ease: active ? 'back.out(2)' : 'power1.out',
+        });
+    }
+
     function scatterAsh(els: HTMLElement[]) {
         if (els.length === 0) return Promise.resolve();
         return new Promise<void>((resolve) => {
@@ -126,12 +188,16 @@ export function useRitualAnimation() {
         fadeInText,
         raisePaper,
         detachPaper,
-        dropPaper,
-        ignitePaper,
-        burnPaper,
+        dropPaperInto,
+        igniteFlash,
+        setBurnOrigin,
+        growBurnFront,
+        warpPaper,
+        shrinkPaper,
         fadeOutPaper,
         settlePaper,
         loopFlame,
+        flareFlame,
         scatterAsh,
     };
 }

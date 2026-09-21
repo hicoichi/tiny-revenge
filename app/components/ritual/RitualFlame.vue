@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
 
+const props = defineProps<{
+    flaring: boolean;
+}>();
+
 const anim = useRitualAnimation();
+const rootEl = ref<HTMLElement | null>(null);
 const glowEl = ref<HTMLElement | null>(null);
 const coreEl = ref<HTMLElement | null>(null);
 const tipEl = ref<HTMLElement | null>(null);
@@ -11,11 +16,20 @@ onMounted(() => {
     if (glowEl.value) anim.loopFlame(glowEl.value);
     if (coreEl.value) anim.loopFlame(coreEl.value);
     if (tipEl.value) anim.loopFlame(tipEl.value);
+    if (rootEl.value) anim.flareFlame(rootEl.value, props.flaring);
 });
+
+// 紙が炎に触れる段階(ignite以降)で、待機中の小さな炎から一気に燃え上がる。
+watch(
+    () => props.flaring,
+    (flaring) => {
+        if (rootEl.value) anim.flareFlame(rootEl.value, flaring);
+    },
+);
 </script>
 
 <template>
-    <div class="flame">
+    <div ref="rootEl" class="flame">
         <div ref="glowEl" class="flame__glow" />
         <div ref="coreEl" class="flame__core" />
         <div ref="tipEl" class="flame__tip" />
@@ -26,8 +40,10 @@ onMounted(() => {
 .flame {
     position: absolute;
     left: 50%;
-    bottom: 36vh;
-    transform: translateX(-50%);
+    bottom: var(--rr-flame-bottom, 36vh);
+    transform: translateX(-50%) scale(0.55);
+    transform-origin: 50% 100%;
+    opacity: 0.72;
     width: 170px;
     height: 220px;
     pointer-events: none;
