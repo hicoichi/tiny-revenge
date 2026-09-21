@@ -73,9 +73,9 @@ watch(
     position: absolute;
     left: 50%;
     bottom: var(--rr-flame-bottom, 36vh);
-    transform: translateX(-50%) scale(0.55);
+    transform: translateX(-50%) scale(0.52);
     transform-origin: 50% 100%;
-    opacity: 0.72;
+    opacity: 0.78;
     width: 300px;
     height: 360px;
     pointer-events: none;

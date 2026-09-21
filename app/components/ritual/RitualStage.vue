@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { HOLD_COMPLETE_MS, HOLD_RAISE_MS } from '~/constants/revenge';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRitual } from '~/composables/useRitual';
@@ -8,13 +8,10 @@ import type { RitePhase } from '~/types/revenge';
 const revenge = useRevenge();
 const ritual = useRitual();
 
-const flameAnchorEl = ref<HTMLElement | null>(null);
-
-// 炎は儀式に入った時点から灯っており、紙が触れる段階で勢いを増す。
+// 炎は儀式に入った時点から灯っており、紙が燃え始めると勢いを増す。
 const flaring = computed(() =>
     (['ignite', 'burn', 'ash'] as RitePhase[]).includes(ritual.ritePhase.value),
 );
-const showAsh = computed(() => ritual.ritePhase.value === 'ash');
 const showRaise = computed(() => ritual.ritePhase.value === 'ready');
 const showComplete = computed(() => ritual.ritePhase.value === 'raised');
 
@@ -34,7 +31,7 @@ function raise() {
 }
 
 function complete() {
-    ritual.setRitePhase('detach');
+    ritual.setRitePhase('ignite');
 }
 </script>
 
@@ -46,7 +43,6 @@ function complete() {
         <div class="stage__altar" />
         <div class="stage__altar-top" />
 
-        <div class="stage__flame-anchor" ref="flameAnchorEl" />
         <RitualFlame :flaring="flaring" />
 
         <div class="stage__paper-wrap">
@@ -54,11 +50,8 @@ function complete() {
                 :vow="revenge.vow.value"
                 :constraint-label="revenge.constraint.value ?? ''"
                 :verb-label="revenge.verb.value ?? ''"
-                :flame-target="flameAnchorEl"
             />
         </div>
-
-        <RitualAsh v-if="showAsh" />
 
         <div class="stage__footer">
             <p class="stage__hint">{{ hint }}</p>
@@ -88,16 +81,7 @@ function complete() {
     max-width: 660px;
     margin: 0 auto;
     overflow: hidden;
-    --rr-flame-bottom: 36vh;
-}
-
-.stage__flame-anchor {
-    position: absolute;
-    left: 50%;
-    bottom: var(--rr-flame-bottom);
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
+    --rr-flame-bottom: 22vh;
 }
 
 .stage__glow {
@@ -135,7 +119,7 @@ function complete() {
     transform: translateX(-50%);
     bottom: 0;
     width: 36%;
-    height: 34vh;
+    height: 20vh;
     background: linear-gradient(180deg, #1d1a15, #100e0c);
     box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.7);
 }
@@ -144,7 +128,7 @@ function complete() {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 34vh;
+    bottom: 20vh;
     width: 42%;
     height: 12px;
     background: #221f19;
@@ -154,7 +138,7 @@ function complete() {
     position: absolute;
     left: 0;
     right: 0;
-    top: 14vh;
+    top: 10vh;
     display: flex;
     justify-content: center;
     perspective: 900px;
@@ -202,7 +186,7 @@ function complete() {
     }
 
     .stage__paper-wrap {
-        top: 10vh;
+        top: 7vh;
         perspective: 1400px;
     }
 }

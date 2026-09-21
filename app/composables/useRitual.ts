@@ -11,8 +11,6 @@ const RESUMABLE_RITE_PHASE: Record<RitePhase, RitePhase> = {
     ready: 'ready',
     raising: 'ready',
     raised: 'raised',
-    detach: 'raised',
-    fall: 'raised',
     ignite: 'raised',
     burn: 'raised',
     ash: 'raised',

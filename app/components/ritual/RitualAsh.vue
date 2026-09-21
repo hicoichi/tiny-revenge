@@ -45,7 +45,7 @@ onMounted(() => {
 .ash {
     position: absolute;
     left: 50%;
-    bottom: 38vh;
+    bottom: 10%;
     transform: translateX(-50%);
     width: 120px;
     height: 140px;

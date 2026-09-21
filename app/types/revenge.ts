@@ -28,8 +28,6 @@ export type RitePhase =
     | 'ready'
     | 'raising'
     | 'raised'
-    | 'detach'
-    | 'fall'
     | 'ignite'
     | 'burn'
     | 'ash';

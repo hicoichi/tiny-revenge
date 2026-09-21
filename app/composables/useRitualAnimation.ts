@@ -48,64 +48,7 @@ export function useRitualAnimation() {
         });
     }
 
-    function detachPaper(el: HTMLElement) {
-        return tweenTo(el, {
-            y: -14,
-            rotate: 3,
-            duration: 1.5,
-            ease: 'power1.inOut',
-        });
-    }
-
-    // 紙を炎の根元(anchorEl)へ、左右に揺れる木の葉のようにひらひらと落とす。
-    // 実際のDOM座標から必要な移動量を逆算するため、画面サイズが変わっても着地点がずれない。
-    function dropPaperInto(el: HTMLElement, anchorEl: HTMLElement) {
-        const paperRect = el.getBoundingClientRect();
-        const anchorRect = anchorEl.getBoundingClientRect();
-        const currentY = Number(gsap.getProperty(el, 'y')) || 0;
-        const naturalBottom = paperRect.bottom - currentY;
-        const targetY = anchorRect.top - naturalBottom + 14;
-        const rand = gsap.utils.random;
-        return new Promise<void>((resolve) => {
-            gsap.to(el, {
-                keyframes: {
-                    y: [
-                        targetY * 0.08,
-                        targetY * 0.22,
-                        targetY * 0.4,
-                        targetY * 0.58,
-                        targetY * 0.76,
-                        targetY * 0.9,
-                        targetY,
-                    ],
-                    x: [
-                        rand(-16, -8),
-                        rand(14, 24),
-                        rand(-26, -16),
-                        rand(10, 20),
-                        rand(-16, -6),
-                        rand(4, 10),
-                        0,
-                    ],
-                    rotate: [
-                        rand(-20, -12),
-                        rand(10, 18),
-                        rand(-22, -14),
-                        rand(8, 16),
-                        rand(-14, -6),
-                        rand(-2, 4),
-                        -10,
-                    ],
-                    scale: [0.97, 0.91, 0.86, 0.82, 0.79, 0.77, 0.76],
-                },
-                duration: 2.2,
-                ease: 'power1.in',
-                onComplete: resolve,
-            });
-        });
-    }
-
-    // 炎に触れた瞬間の一瞬の明るいフラッシュ。
+    // 紙に火が触れた瞬間の一瞬の明るいフラッシュ。
     function igniteFlash(el: HTMLElement) {
         return new Promise<void>((resolve) => {
             const tl = gsap.timeline({ onComplete: resolve });
@@ -147,11 +90,11 @@ export function useRitualAnimation() {
     function warpPaper(el: HTMLElement) {
         return gsap.to(el, {
             keyframes: [
-                { rotate: -10, skewX: 0 },
-                { rotate: -8.6, skewX: 1.3 },
-                { rotate: -11.3, skewX: -0.9 },
-                { rotate: -9.4, skewX: 0.7 },
-                { rotate: -10, skewX: 0 },
+                { rotate: 0, skewX: 0 },
+                { rotate: 1.4, skewX: 1.3 },
+                { rotate: -1.3, skewX: -0.9 },
+                { rotate: 0.6, skewX: 0.7 },
+                { rotate: 0, skewX: 0 },
             ],
             duration: 2.8,
             repeat: -1,
@@ -194,12 +137,13 @@ export function useRitualAnimation() {
         });
     }
 
-    // 炎の勢いを切り替える(待機中は小さく、紙が触れたら大きく)。
+    // 炎の勢いを切り替える。待機中は紙の定位置と重ならない大きさに抑え、
+    // 紙が触れたら一気に、より大きく燃え上がらせる。
     function flareFlame(el: HTMLElement, active: boolean) {
         return gsap.to(el, {
-            scale: active ? 1 : 0.55,
-            opacity: active ? 1 : 0.72,
-            duration: active ? 0.7 : 1,
+            scale: active ? 1.2 : 0.52,
+            opacity: active ? 1 : 0.78,
+            duration: active ? 0.8 : 1,
             ease: active ? 'back.out(2)' : 'power1.out',
         });
     }
@@ -317,8 +261,6 @@ export function useRitualAnimation() {
         appearPaper,
         fadeInText,
         raisePaper,
-        detachPaper,
-        dropPaperInto,
         igniteFlash,
         setBurnOrigin,
         growBurnFront,

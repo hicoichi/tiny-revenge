@@ -5,11 +5,10 @@ import { useRitual } from '~/composables/useRitual';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
 import type { RitePhase } from '~/types/revenge';
 
-const props = defineProps<{
+defineProps<{
     vow: string;
     constraintLabel: string;
     verbLabel: string;
-    flameTarget: HTMLElement | null;
 }>();
 
 const ritual = useRitual();
@@ -23,6 +22,7 @@ const frontCircleEl = ref<SVGCircleElement | null>(null);
 const charCircleEl = ref<SVGCircleElement | null>(null);
 
 const showText = computed(() => ritual.ritePhase.value !== 'appear');
+const showAsh = computed(() => ritual.ritePhase.value === 'ash');
 
 let warpTween: gsap.core.Tween | null = null;
 let shrinkTween: gsap.core.Tween | null = null;
@@ -51,6 +51,7 @@ async function runRaise() {
     ritual.setRitePhase('raised');
 }
 
+// 紙は掲げた位置に留まったまま、その場で炎が燃え移って燃え尽きる。
 async function runComplete() {
     const el = paperEl.value;
     const inner = paperInnerEl.value;
@@ -58,14 +59,6 @@ async function runComplete() {
     const char = charCircleEl.value;
     if (!el || !inner || !front || !char) return;
 
-    await anim.detachPaper(el);
-    ritual.setRitePhase('fall');
-
-    if (props.flameTarget) {
-        await anim.dropPaperInto(el, props.flameTarget);
-    }
-
-    ritual.setRitePhase('ignite');
     await anim.igniteFlash(inner);
 
     ritual.setRitePhase('burn');
@@ -76,7 +69,7 @@ async function runComplete() {
     anim.setBurnOrigin(front, originX, originY);
     anim.setBurnOrigin(char, originX, originY);
     warpTween = anim.warpPaper(el);
-    shrinkTween = anim.shrinkPaper(el, 0.64, (BURN_FRONT_MS + BURN_CHAR_DELAY_MS) / 1000);
+    shrinkTween = anim.shrinkPaper(el, 0.72, (BURN_FRONT_MS + BURN_CHAR_DELAY_MS) / 1000);
     await Promise.all([
         anim.growBurnFront(front, maxRadius, BURN_FRONT_MS),
         anim.growBurnFront(char, maxRadius, BURN_FRONT_MS, BURN_CHAR_DELAY_MS),
@@ -94,7 +87,7 @@ async function runComplete() {
 function runForPhase(phase: RitePhase) {
     if (phase === 'appear') runAppear();
     if (phase === 'raising') runRaise();
-    if (phase === 'detach') runComplete();
+    if (phase === 'ignite') runComplete();
 }
 
 // マウント時点で既にphaseが'appear'になっている場合があるため、
@@ -170,6 +163,8 @@ watch(() => ritual.ritePhase.value, runForPhase);
                 </mask>
             </defs>
         </svg>
+
+        <RitualAsh v-if="showAsh" />
     </div>
 </template>
 
