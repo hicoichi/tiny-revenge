@@ -7,7 +7,7 @@ const emit = defineEmits<{
 <template>
     <div class="verdict">
         <h2 class="verdict__title">決着</h2>
-        <p class="verdict__text">この件は、<br />お前の手で終わった。</p>
+        <p class="verdict__text">復讐は完遂された。<br />灰の上にはまだ何も咲かない。</p>
         <button type="button" class="verdict__restart" @click="emit('restart')">
             は じ め か ら
         </button>

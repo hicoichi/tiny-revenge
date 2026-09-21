@@ -9,11 +9,11 @@ export default defineNuxtConfig({
         baseURL: process.env.NUXT_APP_BASE_URL || '/',
         head: {
             htmlAttrs: { lang: 'ja' },
-            title: '復讐',
+            title: '焚恨録',
             meta: [
                 {
                     name: 'description',
-                    content: '日常の小さな決着をつけるための復讐の儀式。',
+                    content: '恨みを焚べ、灰へ還す。日常の小さな決着をつけるための儀式。',
                 },
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' },
             ],
@@ -26,7 +26,7 @@ export default defineNuxtConfig({
                 },
                 {
                     rel: 'stylesheet',
-                    href: 'https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&display=swap',
+                    href: 'https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&family=Yuji+Boku&display=swap',
                 },
             ],
         },

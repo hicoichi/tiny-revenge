@@ -1,18 +1,31 @@
 <script setup lang="ts">
+import { REVENGE_QUOTES, type RevengeQuote } from '~/constants/quotes';
+
 const emit = defineEmits<{
     start: [];
 }>();
+
+// 静的生成(SSG)のHTMLと乱数が食い違いハイドレーション不一致になるため、マウント後に選ぶ
+const quote = ref<RevengeQuote | null>(null);
+
+onMounted(() => {
+    const index = Math.floor(Math.random() * REVENGE_QUOTES.length);
+    quote.value = REVENGE_QUOTES[index] ?? null;
+});
 </script>
 
 <template>
     <div class="start">
-        <h1 class="start__title">復讐</h1>
-        <p class="start__subtitle">日 常 の 小 さ な 決 着</p>
+        <h1 class="start__title">焚恨録</h1>
+        <p class="start__subtitle">恨 み を 焚 べ 、 灰 へ 還 す</p>
         <div class="start__divider" />
         <button type="button" class="start__button" @click="emit('start')">
             は じ め る
         </button>
-        <p class="start__footnote">答 え は 示 さ れ な い</p>
+        <figure v-if="quote" class="start__quote">
+            <blockquote class="start__quote-text">{{ quote.text }}</blockquote>
+            <figcaption v-if="quote.author" class="start__quote-author">── {{ quote.author }} ──</figcaption>
+        </figure>
     </div>
 </template>
 
@@ -68,10 +81,28 @@ const emit = defineEmits<{
     color: var(--rr-ink-brightest);
 }
 
-.start__footnote {
+.start__quote {
     position: absolute;
-    bottom: 56px;
+    bottom: 48px;
+    left: 0;
+    right: 0;
     margin: 0;
+    padding: 0 24px;
+    text-align: center;
+    animation: rr-fade 2s ease 0.8s both;
+}
+
+.start__quote-text {
+    margin: 0;
+    white-space: pre-line;
+    font-size: 12px;
+    line-height: 1.9;
+    letter-spacing: 0.2em;
+    color: var(--rr-ink-faint);
+}
+
+.start__quote-author {
+    margin-top: 8px;
     font-size: 10px;
     letter-spacing: 0.3em;
     color: var(--rr-ink-dim);
