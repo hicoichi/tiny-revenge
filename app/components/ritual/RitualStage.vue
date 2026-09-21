@@ -72,7 +72,7 @@ function complete() {
             />
         </div>
 
-        <div class="stage__blackout" :class="{ 'stage__blackout--on': ritual.isBlackout }" />
+        <div class="stage__blackout" :class="{ 'stage__blackout--on': ritual.isBlackout.value }" />
     </div>
 </template>
 

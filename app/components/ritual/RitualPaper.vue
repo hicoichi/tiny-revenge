@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRitual } from '~/composables/useRitual';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
 import type { RitePhase } from '~/types/revenge';
@@ -62,16 +62,19 @@ async function runComplete() {
     ritual.finishRite();
 }
 
-// マウント時点で既にphaseが'appear'になっているため、immediateかつrefが張られた後(post)に発火させる。
-watch(
-    () => ritual.ritePhase.value,
-    (phase) => {
-        if (phase === 'appear') runAppear();
-        if (phase === 'raising') runRaise();
-        if (phase === 'detach') runComplete();
-    },
-    { immediate: true, flush: 'post' },
-);
+function runForPhase(phase: RitePhase) {
+    if (phase === 'appear') runAppear();
+    if (phase === 'raising') runRaise();
+    if (phase === 'detach') runComplete();
+}
+
+// マウント時点で既にphaseが'appear'になっている場合があるため、
+// refがDOMに張られた後のonMountedで初回分を処理し、以降の遷移はwatchで処理する。
+onMounted(() => {
+    runForPhase(ritual.ritePhase.value);
+});
+
+watch(() => ritual.ritePhase.value, runForPhase);
 </script>
 
 <template>
