@@ -1,6 +1,22 @@
 import { computed, readonly, ref } from 'vue';
 import { REVENGE_QUESTIONS } from '~/constants/revenge';
-import type { RitePhase, RitualStep } from '~/types/revenge';
+import type { RitePhase, RitualSnapshot, RitualStep } from '~/types/revenge';
+
+// 燃焼アニメーションの途中経過はアニメーション専用の状態であり、そのまま復元できない。
+// 保存データから復元する際は、直前に完了していた「休止状態」まで巻き戻す。
+const RESUMABLE_RITE_PHASE: Record<RitePhase, RitePhase> = {
+    idle: 'idle',
+    appear: 'ready',
+    text: 'ready',
+    ready: 'ready',
+    raising: 'ready',
+    raised: 'raised',
+    detach: 'raised',
+    fall: 'raised',
+    ignite: 'raised',
+    burn: 'raised',
+    ash: 'raised',
+};
 
 // 儀式全体の進行状態。画面をまたいで保持する必要があるためモジュールスコープで共有する。
 const step = ref<RitualStep>('start');
@@ -86,6 +102,26 @@ function reset() {
     isBlackout.value = false;
 }
 
+// 保存用のスナップショットを作る。
+function snapshot(): RitualSnapshot {
+    return {
+        step: step.value,
+        questionIndex: questionIndex.value,
+        ritePhase: ritePhase.value,
+    };
+}
+
+// 保存されていたスナップショットから状態を復元する。
+function hydrate(data: Partial<RitualSnapshot>) {
+    step.value = data.step ?? 'start';
+    questionIndex.value = data.questionIndex ?? 0;
+    ritePhase.value =
+        step.value === 'rite'
+            ? RESUMABLE_RITE_PHASE[data.ritePhase ?? 'ready']
+            : 'idle';
+    isBlackout.value = false;
+}
+
 export function useRitual() {
     return {
         step: readonly(step),
@@ -101,5 +137,7 @@ export function useRitual() {
         setRitePhase,
         finishRite,
         reset,
+        snapshot,
+        hydrate,
     };
 }

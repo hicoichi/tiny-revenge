@@ -84,6 +84,15 @@ export function useRitualAnimation() {
         return tweenTo(el, { opacity: 0, duration: 0.6 });
     }
 
+    // 保存状態からの復元時など、演出を再生せずに休止状態の見た目へ即座に合わせる。
+    function settlePaper(el: HTMLElement, phase: 'ready' | 'raised') {
+        if (phase === 'raised') {
+            gsap.set(el, { opacity: 1, y: -58, scale: 0.86, rotateX: 0 });
+        } else {
+            gsap.set(el, { opacity: 1, y: 0, scale: 1, rotateX: 0 });
+        }
+    }
+
     // 炎は表示されている間ずっと揺らぎ続けるループアニメーション。完了しないため呼び切りで良い。
     function loopFlame(el: HTMLElement) {
         return gsap.to(el, {
@@ -121,6 +130,7 @@ export function useRitualAnimation() {
         ignitePaper,
         burnPaper,
         fadeOutPaper,
+        settlePaper,
         loopFlame,
         scatterAsh,
     };

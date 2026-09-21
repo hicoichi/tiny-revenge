@@ -33,3 +33,17 @@ export type RitePhase =
     | 'ignite'
     | 'burn'
     | 'ash';
+
+// localStorageへ保存/復元するための状態のスナップショット。
+export interface RevengeSnapshot {
+    answers: RevengeAnswers;
+    constraint: string | null;
+    verb: string | null;
+    vow: string;
+}
+
+export interface RitualSnapshot {
+    step: RitualStep;
+    questionIndex: number;
+    ritePhase: RitePhase;
+}

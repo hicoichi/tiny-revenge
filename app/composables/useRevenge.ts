@@ -6,7 +6,7 @@ import {
     REVENGE_QUESTIONS,
     REVENGE_VERBS,
 } from '~/constants/revenge';
-import type { RevengeAnswerKey } from '~/types/revenge';
+import type { RevengeAnswerKey, RevengeSnapshot } from '~/types/revenge';
 
 // 画面遷移をまたいで保持する必要があるため、モジュールスコープでシングルトンとして状態を持つ。
 const answers = reactive({ harm: '', anger: '', want: '' });
@@ -41,6 +41,26 @@ function resetRevenge() {
 
 const isVowValid = computed(() => vow.value.trim().length >= MIN_VOW_LENGTH);
 
+// 保存用のスナップショットを作る。
+function snapshot(): RevengeSnapshot {
+    return {
+        answers: { harm: answers.harm, anger: answers.anger, want: answers.want },
+        constraint: constraint.value,
+        verb: verb.value,
+        vow: vow.value,
+    };
+}
+
+// 保存されていたスナップショットから状態を復元する。
+function hydrate(data: Partial<RevengeSnapshot>) {
+    answers.harm = data.answers?.harm ?? '';
+    answers.anger = data.answers?.anger ?? '';
+    answers.want = data.answers?.want ?? '';
+    constraint.value = data.constraint ?? null;
+    verb.value = data.verb ?? null;
+    vow.value = typeof data.vow === 'string' ? data.vow.slice(0, MAX_VOW_LENGTH) : '';
+}
+
 export function useRevenge() {
     return {
         questions: REVENGE_QUESTIONS,
@@ -56,5 +76,7 @@ export function useRevenge() {
         setVerb,
         setVow,
         resetRevenge,
+        snapshot,
+        hydrate,
     };
 }

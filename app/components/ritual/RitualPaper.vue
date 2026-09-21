@@ -70,8 +70,16 @@ function runForPhase(phase: RitePhase) {
 
 // マウント時点で既にphaseが'appear'になっている場合があるため、
 // refがDOMに張られた後のonMountedで初回分を処理し、以降の遷移はwatchで処理する。
+// 保存状態からの復元で最初から'ready'/'raised'になっている場合は、
+// 演出を再生せず休止状態の見た目へ即座に合わせる。
 onMounted(() => {
-    runForPhase(ritual.ritePhase.value);
+    const phase = ritual.ritePhase.value;
+    if (phase === 'ready' || phase === 'raised') {
+        const el = paperEl.value;
+        if (el) anim.settlePaper(el, phase);
+        return;
+    }
+    runForPhase(phase);
 });
 
 watch(() => ritual.ritePhase.value, runForPhase);

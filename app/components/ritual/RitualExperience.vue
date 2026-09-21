@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRevenge } from '~/composables/useRevenge';
+import { useRevengeStorage } from '~/composables/useRevengeStorage';
 import { useRitual } from '~/composables/useRitual';
 
 const revenge = useRevenge();
 const ritual = useRitual();
+const storage = useRevengeStorage();
+
+onMounted(() => {
+    storage.init();
+});
 
 const screenKey = computed(() =>
     ritual.step.value === 'question'
@@ -19,6 +25,7 @@ function onAnswerUpdate(value: string) {
 function onRestart() {
     ritual.reset();
     revenge.resetRevenge();
+    storage.clear();
 }
 </script>
 

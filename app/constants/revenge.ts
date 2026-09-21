@@ -31,3 +31,5 @@ export const MIN_VOW_LENGTH = 2;
 export const HOLD_DECIDE_MS = 2200;
 export const HOLD_RAISE_MS = 1800;
 export const HOLD_COMPLETE_MS = 2600;
+
+export const REVENGE_STORAGE_KEY = 'tiny-revenge:state:v1';
