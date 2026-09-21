@@ -1,0 +1,1299 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="./support.js"></script>
+    </head>
+    <body>
+        <x-dc>
+            <helmet data-dc-atomics>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossorigin
+                />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&display=swap"
+                    rel="stylesheet"
+                />
+                <style>
+                    body {
+                        margin: 0;
+                        background: #0b0a09;
+                        min-height: 100vh;
+                        font-family: 'Shippori Mincho B1', serif;
+                    }
+                    a {
+                        color: #c9a227;
+                    }
+                    a:hover {
+                        color: #e6c04f;
+                    }
+                    textarea,
+                    input,
+                    button {
+                        font-family: inherit;
+                    }
+                    textarea:focus,
+                    input:focus {
+                        outline: none;
+                    }
+                    @keyframes rrIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(14px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: none;
+                        }
+                    }
+                    @keyframes rrFade {
+                        from {
+                            opacity: 0;
+                        }
+                        to {
+                            opacity: 1;
+                        }
+                    }
+                    @keyframes rrOut {
+                        from {
+                            opacity: 1;
+                        }
+                        to {
+                            opacity: 0;
+                        }
+                    }
+                    @keyframes rrPaperIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(40px) rotateX(38deg)
+                                scale(0.92);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: none;
+                        }
+                    }
+                    @keyframes rrRaise {
+                        from {
+                            transform: translateY(0) scale(1);
+                        }
+                        to {
+                            transform: translateY(-58px) scale(0.86);
+                        }
+                    }
+                    @keyframes rrBreathe {
+                        0%,
+                        100% {
+                            opacity: 0.45;
+                        }
+                        50% {
+                            opacity: 0.85;
+                        }
+                    }
+                    @keyframes rrDetach {
+                        0% {
+                            transform: translateY(-58px) scale(0.86)
+                                rotate(0deg);
+                        }
+                        60% {
+                            transform: translateY(-44px) scale(0.86)
+                                rotate(-2.5deg);
+                        }
+                        100% {
+                            transform: translateY(-14px) scale(0.86)
+                                rotate(3deg);
+                        }
+                    }
+                    @keyframes rrFall {
+                        0% {
+                            transform: translateY(-14px) scale(0.86)
+                                rotate(3deg);
+                        }
+                        100% {
+                            transform: translateY(250px) scale(0.8)
+                                rotate(-9deg);
+                        }
+                    }
+                    @keyframes rrBurnAway {
+                        0% {
+                            -webkit-mask-position: 0% 0%;
+                            mask-position: 0% 0%;
+                        }
+                        100% {
+                            -webkit-mask-position: 0% 100%;
+                            mask-position: 0% 100%;
+                        }
+                    }
+                    @keyframes rrScorch {
+                        0% {
+                            filter: none;
+                        }
+                        30% {
+                            filter: sepia(0.5) brightness(0.95);
+                        }
+                        100% {
+                            filter: sepia(1) brightness(0.6);
+                        }
+                    }
+                    @keyframes rrFlame {
+                        0%,
+                        100% {
+                            transform: scaleY(1) scaleX(1);
+                            opacity: 0.9;
+                        }
+                        25% {
+                            transform: scaleY(1.18) scaleX(0.94);
+                            opacity: 1;
+                        }
+                        50% {
+                            transform: scaleY(0.92) scaleX(1.06);
+                            opacity: 0.8;
+                        }
+                        75% {
+                            transform: scaleY(1.12) scaleX(0.97);
+                            opacity: 0.95;
+                        }
+                    }
+                    @keyframes rrAsh {
+                        0% {
+                            transform: translateY(0) translateX(0);
+                            opacity: 0.7;
+                        }
+                        100% {
+                            transform: translateY(-120px) translateX(18px);
+                            opacity: 0;
+                        }
+                    }
+                    @keyframes rrSlowFade {
+                        0% {
+                            opacity: 0;
+                        }
+                        40% {
+                            opacity: 1;
+                        }
+                        100% {
+                            opacity: 1;
+                        }
+                    }
+                </style>
+            </helmet>
+            <div
+                style="
+                    position: relative;
+                    min-height: 100vh;
+                    width: 100%;
+                    background: radial-gradient(
+                        120% 70% at 50% 8%,
+                        #1c1a17 0%,
+                        #0b0a09 58%,
+                        #050505 100%
+                    );
+                    color: #d7cfc0;
+                    overflow: hidden;
+                "
+            >
+                <sc-if value="{{ sStart }}" hint-placeholder-val="{{ true }}">
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0;
+                            animation: rrFade 1.4s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                writing-mode: vertical-rl;
+                                font-size: 62px;
+                                letter-spacing: 0.24em;
+                                font-weight: 800;
+                                color: #e8e0cf;
+                                text-shadow: 0 0 40px rgba(201, 162, 39, 0.18);
+                            "
+                        >
+                            復讐
+                        </div>
+                        <div
+                            style="
+                                margin-top: 34px;
+                                font-size: 12px;
+                                letter-spacing: 0.5em;
+                                color: #6e6759;
+                            "
+                        >
+                            日 常 の 小 さ な 決 着
+                        </div>
+                        <div
+                            style="
+                                width: 1px;
+                                height: 78px;
+                                margin: 30px 0;
+                                background: linear-gradient(
+                                    #0000,
+                                    #7a6f58,
+                                    #0000
+                                );
+                            "
+                        ></div>
+                        <button
+                            onClick="{{ next }}"
+                            style="
+                                background: none;
+                                border: 1px solid #4a443a;
+                                color: #cfc6b4;
+                                padding: 16px 42px;
+                                font-size: 14px;
+                                letter-spacing: 0.34em;
+                                cursor: pointer;
+                                transition: all 0.6s;
+                            "
+                            style-hover="border-color:#c9a227;color:#f0e7d4"
+                        >
+                            は じ め る
+                        </button>
+                        <div
+                            style="
+                                position: absolute;
+                                bottom: 56px;
+                                font-size: 10px;
+                                letter-spacing: 0.3em;
+                                color: #4a453c;
+                            "
+                        >
+                            答 え は 示 さ れ な い
+                        </div>
+                    </div>
+                </sc-if>
+
+                <sc-if value="{{ sAsk }}" hint-placeholder-val="{{ false }}">
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            padding: 14vh 34px 6vh;
+                            display: flex;
+                            flex-direction: column;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            width: 100%;
+                            box-sizing: border-box;
+                            animation: rrIn 1s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 11px;
+                                letter-spacing: 0.42em;
+                                color: #6a6252;
+                            "
+                        >
+                            {{ mark }} ・ 問 い
+                        </div>
+                        <div
+                            style="
+                                margin-top: 44px;
+                                font-size: 27px;
+                                line-height: 1.7;
+                                font-weight: 600;
+                                color: #ece4d3;
+                                text-wrap: pretty;
+                            "
+                        >
+                            {{ question }}
+                        </div>
+                        <textarea
+                            value="{{ answer }}"
+                            onChange="{{ onAnswer }}"
+                            placeholder="…"
+                            style="
+                                margin-top: 34px;
+                                flex: 1;
+                                background: none;
+                                border: none;
+                                border-bottom: 1px solid #3a352d;
+                                color: #ded6c5;
+                                font-size: 17px;
+                                line-height: 2;
+                                resize: none;
+                                padding: 0 0 12px;
+                            "
+                        ></textarea>
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                margin-top: 28px;
+                            "
+                        >
+                            <button
+                                onClick="{{ back }}"
+                                style="
+                                    background: none;
+                                    border: none;
+                                    color: #5e5849;
+                                    font-size: 12px;
+                                    letter-spacing: 0.3em;
+                                    cursor: pointer;
+                                    padding: 12px 0;
+                                "
+                            >
+                                も ど る
+                            </button>
+                            <button
+                                onClick="{{ next }}"
+                                style="
+                                    background: none;
+                                    border: 1px solid #4a443a;
+                                    color: #cfc6b4;
+                                    padding: 14px 34px;
+                                    font-size: 13px;
+                                    letter-spacing: 0.3em;
+                                    cursor: pointer;
+                                    transition: all 0.5s;
+                                "
+                                style-hover="border-color:#c9a227;color:#f0e7d4"
+                            >
+                                つ ぎ へ
+                            </button>
+                        </div>
+                    </div>
+                </sc-if>
+
+                <sc-if
+                    value="{{ sConstraint }}"
+                    hint-placeholder-val="{{ false }}"
+                >
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            padding: 14vh 34px 6vh;
+                            display: flex;
+                            flex-direction: column;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            width: 100%;
+                            box-sizing: border-box;
+                            animation: rrIn 1s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 11px;
+                                letter-spacing: 0.42em;
+                                color: #6a6252;
+                            "
+                        >
+                            肆 ・ 制 約
+                        </div>
+                        <div
+                            style="
+                                margin-top: 38px;
+                                font-size: 25px;
+                                line-height: 1.7;
+                                font-weight: 600;
+                                color: #ece4d3;
+                            "
+                        >
+                            その復讐に、<br />一つの縛りを課す。
+                        </div>
+                        <div
+                            style="
+                                margin-top: 34px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 10px;
+                            "
+                        >
+                            <sc-for
+                                list="{{ constraints }}"
+                                as="c"
+                                hint-placeholder-count="5"
+                            >
+                                <button
+                                    onClick="{{ c.pick }}"
+                                    style="text-align:left;background:{{ c.bg }};border:1px solid {{ c.border }};color:#ddd4c2;padding:17px 20px;font-size:16px;letter-spacing:.06em;cursor:pointer;transition:all .45s"
+                                    style-hover="border-color:#8a7c5c"
+                                >
+                                    {{ c.label }}
+                                </button>
+                            </sc-for>
+                        </div>
+                        <div style="flex: 1"></div>
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                            "
+                        >
+                            <button
+                                onClick="{{ back }}"
+                                style="
+                                    background: none;
+                                    border: none;
+                                    color: #5e5849;
+                                    font-size: 12px;
+                                    letter-spacing: 0.3em;
+                                    cursor: pointer;
+                                    padding: 12px 0;
+                                "
+                            >
+                                も ど る
+                            </button>
+                            <button
+                                onClick="{{ next }}"
+                                disabled="{{ noConstraint }}"
+                                style="background:none;border:1px solid #4a443a;color:{{ nextColor1 }};padding:14px 34px;font-size:13px;letter-spacing:.3em;cursor:pointer;transition:all .5s"
+                            >
+                                つ ぎ へ
+                            </button>
+                        </div>
+                    </div>
+                </sc-if>
+
+                <sc-if value="{{ sVerb }}" hint-placeholder-val="{{ false }}">
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            padding: 14vh 34px 6vh;
+                            display: flex;
+                            flex-direction: column;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            width: 100%;
+                            box-sizing: border-box;
+                            animation: rrIn 1s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 11px;
+                                letter-spacing: 0.42em;
+                                color: #6a6252;
+                            "
+                        >
+                            伍 ・ 言 葉
+                        </div>
+                        <div
+                            style="
+                                margin-top: 38px;
+                                font-size: 25px;
+                                line-height: 1.7;
+                                font-weight: 600;
+                                color: #ece4d3;
+                            "
+                        >
+                            一つの言葉を選べ。<br /><span
+                                style="
+                                    font-size: 15px;
+                                    font-weight: 400;
+                                    color: #7d7564;
+                                    line-height: 2;
+                                "
+                                >意味は、自分で決める。</span
+                            >
+                        </div>
+                        <div
+                            style="
+                                margin-top: 30px;
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 10px;
+                            "
+                        >
+                            <sc-for
+                                list="{{ verbs }}"
+                                as="v"
+                                hint-placeholder-count="8"
+                            >
+                                <button
+                                    onClick="{{ v.pick }}"
+                                    style="background:{{ v.bg }};border:1px solid {{ v.border }};color:#e2d9c6;padding:20px 0;font-size:20px;letter-spacing:.2em;font-weight:600;cursor:pointer;transition:all .45s"
+                                    style-hover="border-color:#8a7c5c"
+                                >
+                                    {{ v.label }}
+                                </button>
+                            </sc-for>
+                        </div>
+                        <div style="flex: 1"></div>
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                            "
+                        >
+                            <button
+                                onClick="{{ back }}"
+                                style="
+                                    background: none;
+                                    border: none;
+                                    color: #5e5849;
+                                    font-size: 12px;
+                                    letter-spacing: 0.3em;
+                                    cursor: pointer;
+                                    padding: 12px 0;
+                                "
+                            >
+                                も ど る
+                            </button>
+                            <button
+                                onClick="{{ next }}"
+                                disabled="{{ noVerb }}"
+                                style="background:none;border:1px solid #4a443a;color:{{ nextColor2 }};padding:14px 34px;font-size:13px;letter-spacing:.3em;cursor:pointer;transition:all .5s"
+                            >
+                                つ ぎ へ
+                            </button>
+                        </div>
+                    </div>
+                </sc-if>
+
+                <sc-if
+                    value="{{ sCompose }}"
+                    hint-placeholder-val="{{ false }}"
+                >
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            padding: 12vh 34px 5vh;
+                            display: flex;
+                            flex-direction: column;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            width: 100%;
+                            box-sizing: border-box;
+                            animation: rrIn 1s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 11px;
+                                letter-spacing: 0.42em;
+                                color: #6a6252;
+                            "
+                        >
+                            陸 ・ 決 定
+                        </div>
+                        <div
+                            style="
+                                margin-top: 26px;
+                                display: flex;
+                                gap: 8px;
+                                align-items: center;
+                            "
+                        >
+                            <span
+                                style="
+                                    font-size: 11px;
+                                    letter-spacing: 0.2em;
+                                    color: #8e8471;
+                                    border: 1px solid #3c372e;
+                                    padding: 7px 11px;
+                                "
+                                >{{ constraintLabel }}</span
+                            >
+                            <span
+                                style="
+                                    font-size: 11px;
+                                    letter-spacing: 0.2em;
+                                    color: #c9a227;
+                                    border: 1px solid #4d4128;
+                                    padding: 7px 11px;
+                                "
+                                >{{ verbLabel }}</span
+                            >
+                        </div>
+                        <div
+                            style="
+                                margin-top: 26px;
+                                font-size: 22px;
+                                line-height: 1.7;
+                                font-weight: 600;
+                                color: #ece4d3;
+                            "
+                        >
+                            お前の復讐を、<br />お前の言葉で記せ。
+                        </div>
+                        <textarea
+                            value="{{ vow }}"
+                            onChange="{{ onVow }}"
+                            placeholder="例：次に押しつけられたら、断る。"
+                            style="
+                                margin-top: 22px;
+                                flex: 1;
+                                background: rgba(255, 255, 255, 0.02);
+                                border: 1px solid #33302a;
+                                color: #ece4d3;
+                                font-size: 18px;
+                                line-height: 2;
+                                resize: none;
+                                padding: 18px;
+                            "
+                        ></textarea>
+                        <div
+                            style="
+                                margin-top: 22px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                gap: 12px;
+                            "
+                        >
+                            <div
+                                style="
+                                    font-size: 10px;
+                                    letter-spacing: 0.32em;
+                                    color: #5e5849;
+                                "
+                            >
+                                {{ holdHint }}
+                            </div>
+                            <button
+                                onPointerDown="{{ holdDecide }}"
+                                onPointerUp="{{ holdEnd }}"
+                                onPointerLeave="{{ holdEnd }}"
+                                disabled="{{ noVow }}"
+                                style="position:relative;width:100%;background:none;border:1px solid #5b5342;color:{{ decideColor }};padding:22px 0;font-size:16px;letter-spacing:.42em;font-weight:600;cursor:pointer;overflow:hidden;touch-action:none"
+                            >
+                                <span
+                                    style="position:absolute;left:0;top:0;bottom:0;background:rgba(201,162,39,.16);width:{{ holdWidth }}"
+                                ></span>
+                                <span style="position: relative"
+                                    >復 讐 を 決 め る</span
+                                >
+                            </button>
+                            <button
+                                onClick="{{ back }}"
+                                style="
+                                    background: none;
+                                    border: none;
+                                    color: #5e5849;
+                                    font-size: 11px;
+                                    letter-spacing: 0.3em;
+                                    cursor: pointer;
+                                    padding: 6px 0;
+                                "
+                            >
+                                も ど る
+                            </button>
+                        </div>
+                    </div>
+                </sc-if>
+
+                <sc-if value="{{ sRite }}" hint-placeholder-val="{{ false }}">
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            max-width: 660px;
+                            margin: 0 auto;
+                            overflow: hidden;
+                        "
+                    >
+                        <div
+                            style="
+                                position: absolute;
+                                inset: 0;
+                                background: radial-gradient(
+                                    70% 45% at 50% 30%,
+                                    rgba(90, 80, 62, 0.22) 0%,
+                                    rgba(0, 0, 0, 0) 70%
+                                );
+                            "
+                        ></div>
+                        <div
+                            style="
+                                position: absolute;
+                                left: 0;
+                                top: 9vh;
+                                bottom: 0;
+                                width: 11%;
+                                background: linear-gradient(
+                                    90deg,
+                                    #14120f,
+                                    #232019 40%,
+                                    #0d0c0a
+                                );
+                                box-shadow: inset -14px 0 24px
+                                    rgba(0, 0, 0, 0.6);
+                            "
+                        ></div>
+                        <div
+                            style="
+                                position: absolute;
+                                right: 0;
+                                top: 9vh;
+                                bottom: 0;
+                                width: 11%;
+                                background: linear-gradient(
+                                    270deg,
+                                    #14120f,
+                                    #232019 40%,
+                                    #0d0c0a
+                                );
+                                box-shadow: inset 14px 0 24px rgba(0, 0, 0, 0.6);
+                            "
+                        ></div>
+                        <div
+                            style="
+                                position: absolute;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                bottom: 0;
+                                width: 36%;
+                                height: 34vh;
+                                background: linear-gradient(
+                                    180deg,
+                                    #1d1a15,
+                                    #100e0c
+                                );
+                                box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.7);
+                            "
+                        ></div>
+                        <div
+                            style="
+                                position: absolute;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                bottom: 34vh;
+                                width: 42%;
+                                height: 12px;
+                                background: #221f19;
+                            "
+                        ></div>
+
+                        <sc-if
+                            value="{{ flameOn }}"
+                            hint-placeholder-val="{{ false }}"
+                        >
+                            <div
+                                style="
+                                    position: absolute;
+                                    left: 50%;
+                                    bottom: 36vh;
+                                    transform: translateX(-50%);
+                                    width: 170px;
+                                    height: 220px;
+                                    pointer-events: none;
+                                    z-index: 4;
+                                "
+                            >
+                                <div
+                                    style="
+                                        position: absolute;
+                                        inset: 0;
+                                        background: radial-gradient(
+                                            50% 45% at 50% 78%,
+                                            rgba(255, 150, 40, 0.55),
+                                            rgba(255, 90, 0, 0) 70%
+                                        );
+                                        animation: rrFlame 1.1s ease-in-out
+                                            infinite;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 50%;
+                                        bottom: 10px;
+                                        transform: translateX(-50%);
+                                        width: 62px;
+                                        height: 120px;
+                                        border-radius: 50% 50% 45% 45%;
+                                        background: linear-gradient(
+                                            0deg,
+                                            #ffd27a,
+                                            #ff8a1f 45%,
+                                            rgba(255, 60, 0, 0) 92%
+                                        );
+                                        filter: blur(6px);
+                                        animation: rrFlame 0.7s ease-in-out
+                                            infinite;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 50%;
+                                        bottom: 6px;
+                                        transform: translateX(-50%);
+                                        width: 26px;
+                                        height: 58px;
+                                        border-radius: 50%;
+                                        background: linear-gradient(
+                                            0deg,
+                                            #fff3c4,
+                                            #ffb638 70%,
+                                            rgba(255, 120, 0, 0)
+                                        );
+                                        filter: blur(3px);
+                                        animation: rrFlame 0.5s ease-in-out
+                                            infinite;
+                                    "
+                                ></div>
+                            </div>
+                        </sc-if>
+
+                        <div
+                            style="
+                                position: absolute;
+                                left: 0;
+                                right: 0;
+                                top: 14vh;
+                                display: flex;
+                                justify-content: center;
+                                perspective: 900px;
+                            "
+                        >
+                            <div style="{{ paperAnim }}">
+                                <div
+                                    style="box-sizing:border-box;width:268px;min-height:340px;padding:32px 28px;background:linear-gradient(170deg,#efe7d5,#ddd3bc);box-shadow:0 22px 44px rgba(0,0,0,.65), inset 0 0 40px rgba(150,130,90,.22);display:flex;flex-direction:column;gap:16px;{{ paperInner }}"
+                                >
+                                    <div
+                                        style="
+                                            font-size: 9px;
+                                            letter-spacing: 0.34em;
+                                            color: #8c8064;
+                                        "
+                                    >
+                                        誓 ・ 復 讐
+                                    </div>
+                                    <div
+                                        style="height: 1px; background: #bdb198"
+                                    ></div>
+                                    <sc-if
+                                        value="{{ textOn }}"
+                                        hint-placeholder-val="{{ true }}"
+                                    >
+                                        <div
+                                            style="
+                                                font-size: 18px;
+                                                line-height: 2;
+                                                color: #2a251c;
+                                                font-weight: 600;
+                                                animation: rrSlowFade 2.6s ease
+                                                    both;
+                                                text-wrap: pretty;
+                                            "
+                                        >
+                                            {{ vow }}
+                                        </div>
+                                    </sc-if>
+                                    <div style="flex: 1"></div>
+                                    <div
+                                        style="
+                                            display: flex;
+                                            gap: 6px;
+                                            flex-wrap: wrap;
+                                        "
+                                    >
+                                        <span
+                                            style="
+                                                font-size: 9px;
+                                                letter-spacing: 0.2em;
+                                                color: #6f6550;
+                                                border: 1px solid #b3a88f;
+                                                padding: 5px 8px;
+                                            "
+                                            >{{ constraintLabel }}</span
+                                        >
+                                        <span
+                                            style="
+                                                font-size: 9px;
+                                                letter-spacing: 0.2em;
+                                                color: #6f6550;
+                                                border: 1px solid #b3a88f;
+                                                padding: 5px 8px;
+                                            "
+                                            >{{ verbLabel }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <sc-if
+                            value="{{ ashOn }}"
+                            hint-placeholder-val="{{ false }}"
+                        >
+                            <div
+                                style="
+                                    position: absolute;
+                                    left: 50%;
+                                    bottom: 38vh;
+                                    transform: translateX(-50%);
+                                    width: 120px;
+                                    height: 140px;
+                                    pointer-events: none;
+                                "
+                            >
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 10px;
+                                        bottom: 0;
+                                        width: 4px;
+                                        height: 4px;
+                                        background: #6b6358;
+                                        border-radius: 50%;
+                                        animation: rrAsh 3s ease-out 0.1s both;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 40px;
+                                        bottom: 0;
+                                        width: 3px;
+                                        height: 3px;
+                                        background: #857c6e;
+                                        border-radius: 50%;
+                                        animation: rrAsh 3.4s ease-out 0.5s both;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 70px;
+                                        bottom: 0;
+                                        width: 5px;
+                                        height: 5px;
+                                        background: #5c554c;
+                                        border-radius: 50%;
+                                        animation: rrAsh 2.8s ease-out 0.9s both;
+                                    "
+                                ></div>
+                                <div
+                                    style="
+                                        position: absolute;
+                                        left: 96px;
+                                        bottom: 0;
+                                        width: 3px;
+                                        height: 3px;
+                                        background: #7a7263;
+                                        border-radius: 50%;
+                                        animation: rrAsh 3.2s ease-out 1.3s both;
+                                    "
+                                ></div>
+                            </div>
+                        </sc-if>
+
+                        <div
+                            style="
+                                position: absolute;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                padding: 0 34px 5vh;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                gap: 14px;
+                            "
+                        >
+                            <div
+                                style="
+                                    font-size: 11px;
+                                    letter-spacing: 0.34em;
+                                    color: #8a8170;
+                                    text-align: center;
+                                    min-height: 16px;
+                                    white-space: pre-line;
+                                    line-height: 2;
+                                "
+                            >
+                                {{ riteHint }}
+                            </div>
+                            <sc-if
+                                value="{{ showRaise }}"
+                                hint-placeholder-val="{{ false }}"
+                            >
+                                <button
+                                    onPointerDown="{{ holdRaise }}"
+                                    onPointerUp="{{ holdEnd }}"
+                                    onPointerLeave="{{ holdEnd }}"
+                                    style="
+                                        position: relative;
+                                        width: 100%;
+                                        background: none;
+                                        border: 1px solid #5b5342;
+                                        color: #ece4d3;
+                                        padding: 22px 0;
+                                        font-size: 16px;
+                                        letter-spacing: 0.42em;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        overflow: hidden;
+                                        touch-action: none;
+                                        animation: rrFade 1.2s ease both;
+                                    "
+                                >
+                                    <span
+                                        style="position:absolute;left:0;top:0;bottom:0;background:rgba(201,162,39,.16);width:{{ holdWidth }}"
+                                    ></span>
+                                    <span style="position: relative"
+                                        >紙 を 掲 げ る</span
+                                    >
+                                </button>
+                            </sc-if>
+                            <sc-if
+                                value="{{ showDone }}"
+                                hint-placeholder-val="{{ false }}"
+                            >
+                                <button
+                                    onPointerDown="{{ holdDone }}"
+                                    onPointerUp="{{ holdEnd }}"
+                                    onPointerLeave="{{ holdEnd }}"
+                                    style="
+                                        position: relative;
+                                        width: 100%;
+                                        background: none;
+                                        border: 1px solid #6b4a24;
+                                        color: #f0dcb4;
+                                        padding: 22px 0;
+                                        font-size: 16px;
+                                        letter-spacing: 0.42em;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        overflow: hidden;
+                                        touch-action: none;
+                                        animation: rrFade 1.6s ease both;
+                                    "
+                                >
+                                    <span
+                                        style="position:absolute;left:0;top:0;bottom:0;background:rgba(255,140,40,.2);width:{{ holdWidth }}"
+                                    ></span>
+                                    <span style="position: relative"
+                                        >完 遂</span
+                                    >
+                                </button>
+                            </sc-if>
+                        </div>
+                    </div>
+                </sc-if>
+
+                <div
+                    style="position:absolute;inset:0;background:#000;pointer-events:none;opacity:{{ blackout }};transition:opacity 2.2s ease"
+                ></div>
+
+                <sc-if
+                    value="{{ sVerdict }}"
+                    hint-placeholder-val="{{ false }}"
+                >
+                    <div
+                        style="
+                            position: absolute;
+                            inset: 0;
+                            background: #000;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            animation: rrFade 3s ease both;
+                        "
+                    >
+                        <div
+                            style="
+                                writing-mode: vertical-rl;
+                                font-size: 44px;
+                                letter-spacing: 0.3em;
+                                font-weight: 800;
+                                color: #cdc4b2;
+                            "
+                        >
+                            決着
+                        </div>
+                        <div
+                            style="
+                                margin-top: 36px;
+                                font-size: 12px;
+                                letter-spacing: 0.34em;
+                                color: #4f4a41;
+                                text-align: center;
+                                line-height: 2.4;
+                            "
+                        >
+                            この件は、<br />お前の手で終わった。
+                        </div>
+                        <button
+                            onClick="{{ restart }}"
+                            style="
+                                margin-top: 64px;
+                                background: none;
+                                border: none;
+                                color: #3c3830;
+                                font-size: 10px;
+                                letter-spacing: 0.34em;
+                                cursor: pointer;
+                                padding: 14px;
+                            "
+                            style-hover="color:#7a7263"
+                        >
+                            は じ め か ら
+                        </button>
+                    </div>
+                </sc-if>
+            </div>
+        </x-dc>
+        <script
+            type="text/x-dc"
+            data-dc-script
+            data-props='{"$preview":{"width":460,"height":940}}'
+        >
+            const QUESTIONS = [
+              { mark: '壱', q: '何をされた？', key: 'harm' },
+              { mark: '弐', q: '何が一番腹立たしかった？', key: 'anger' },
+              { mark: '参', q: '本当はどうしてほしかった？', key: 'want' },
+            ];
+            const CONSTRAINTS = ['今日中に実行する', 'お金を使わない', '言葉を使わない', '十分以内で実行する', '相手に直接連絡しない'];
+            const VERBS = ['返す', '拒む', '奪う', '離れる', '待たせる', '超える', '無視する', '取り戻す'];
+
+            class Component extends DCLogic {
+              state = {
+                step: 0, harm: '', anger: '', want: '', constraint: null, verb: null, vow: '',
+                hold: 0, rite: '', blackout: 0,
+              };
+              timers = [];
+
+              componentWillUnmount() { this.clear(); cancelAnimationFrame(this.raf); }
+              clear() { this.timers.forEach(clearTimeout); this.timers = []; }
+              after(ms, fn) { this.timers.push(setTimeout(fn, ms)); }
+
+              startHold(ms, done) {
+                return (e) => {
+                  if (e && e.currentTarget && e.currentTarget.disabled) return;
+                  const t0 = performance.now();
+                  this.holding = true;
+                  const tick = () => {
+                    if (!this.holding) return;
+                    const p = Math.min(1, (performance.now() - t0) / ms);
+                    this.setState({ hold: p });
+                    if (p >= 1) { this.holding = false; this.setState({ hold: 0 }); done(); }
+                    else this.raf = requestAnimationFrame(tick);
+                  };
+                  this.raf = requestAnimationFrame(tick);
+                };
+              }
+              endHold = () => { this.holding = false; cancelAnimationFrame(this.raf); this.setState({ hold: 0 }); };
+
+              decide = () => {
+                this.setState({ step: 6, rite: 'appear' });
+                this.after(1600, () => this.setState({ rite: 'text' }));
+                this.after(4200, () => this.setState({ rite: 'ready' }));
+              };
+              raise = () => {
+                this.setState({ rite: 'raising' });
+                this.after(2800, () => this.setState({ rite: 'raised' }));
+              };
+              complete = () => {
+                this.setState({ rite: 'detach' });
+                this.after(1500, () => this.setState({ rite: 'fall' }));
+                this.after(2600, () => this.setState({ rite: 'ignite' }));
+                this.after(3600, () => this.setState({ rite: 'burn' }));
+                this.after(8200, () => this.setState({ rite: 'ash' }));
+                this.after(11000, () => this.setState({ blackout: 1 }));
+                this.after(14500, () => this.setState({ step: 7 }));
+              };
+              restart = () => {
+                this.clear();
+                this.setState({ step: 0, harm: '', anger: '', want: '', constraint: null, verb: null, vow: '', hold: 0, rite: '', blackout: 0 });
+              };
+
+              renderVals() {
+                const s = this.state;
+                const qi = s.step - 1;
+                const q = QUESTIONS[qi];
+                const rite = s.rite;
+                const paperAnim = {
+                  appear: 'animation:rrPaperIn 2.2s cubic-bezier(.16,.8,.24,1) both',
+                  text: 'animation:rrPaperIn 2.2s cubic-bezier(.16,.8,.24,1) both',
+                  ready: 'animation:rrPaperIn 2.2s cubic-bezier(.16,.8,.24,1) both',
+                  raising: 'animation:rrRaise 2.8s cubic-bezier(.3,.7,.2,1) both',
+                  raised: 'transform:translateY(-58px) scale(.86)',
+                  detach: 'animation:rrDetach 1.5s cubic-bezier(.4,0,.6,1) both',
+                  fall: 'animation:rrFall 1.1s cubic-bezier(.5,0,.85,.6) both',
+                  ignite: 'transform:translateY(250px) scale(.8) rotate(-9deg)',
+                  burn: 'transform:translateY(250px) scale(.8) rotate(-9deg)',
+                  ash: 'opacity:0;transition:opacity .6s',
+                }[rite] || 'opacity:0';
+                const burning = rite === 'burn';
+                const paperInner = rite === 'ignite'
+                  ? 'box-shadow:0 22px 60px rgba(255,120,20,.45), inset 0 0 40px rgba(255,150,60,.35);animation:rrScorch 1s ease both'
+                  : burning
+                    ? '-webkit-mask-image:linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,.4) 33%, #000 42%, #000 100%);mask-image:linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,.4) 33%, #000 42%, #000 100%);-webkit-mask-size:100% 320%;mask-size:100% 320%;animation:rrBurnAway 4.4s linear both, rrScorch 4.4s ease both;box-shadow:0 22px 60px rgba(255,110,20,.4)'
+                    : '';
+                const hints = {
+                  appear: '', text: '', ready: '復讐は記された。',
+                  raising: '', raised: 'この復讐を、現実で実行せよ。\n終えたときだけ、完遂を押せ。',
+                  detach: '', fall: '', ignite: '', burn: '', ash: '',
+                };
+                return {
+                  sStart: s.step === 0,
+                  sAsk: s.step >= 1 && s.step <= 3,
+                  sConstraint: s.step === 4,
+                  sVerb: s.step === 5,
+                  sCompose: s.step === 6 && !s.rite,
+                  sRite: s.step === 6 && !!s.rite,
+                  sVerdict: s.step === 7,
+                  mark: q ? q.mark : '',
+                  question: q ? q.q : '',
+                  answer: q ? s[q.key] : '',
+                  onAnswer: (e) => this.setState({ [q.key]: e.target.value }),
+                  onVow: (e) => this.setState({ vow: e.target.value }),
+                  vow: s.vow,
+                  next: () => this.setState({ step: s.step + 1 }),
+                  back: () => this.setState({ step: Math.max(0, s.step - 1) }),
+                  restart: this.restart,
+                  constraints: CONSTRAINTS.map((label) => ({
+                    label,
+                    bg: s.constraint === label ? 'rgba(201,162,39,.08)' : 'rgba(255,255,255,.015)',
+                    border: s.constraint === label ? '#8a7443' : '#332f28',
+                    pick: () => this.setState({ constraint: label }),
+                  })),
+                  verbs: VERBS.map((label) => ({
+                    label,
+                    bg: s.verb === label ? 'rgba(201,162,39,.08)' : 'rgba(255,255,255,.015)',
+                    border: s.verb === label ? '#8a7443' : '#332f28',
+                    pick: () => this.setState({ verb: label }),
+                  })),
+                  noConstraint: !s.constraint,
+                  noVerb: !s.verb,
+                  noVow: s.vow.trim().length < 2,
+                  nextColor1: s.constraint ? '#cfc6b4' : '#4a453c',
+                  nextColor2: s.verb ? '#cfc6b4' : '#4a453c',
+                  constraintLabel: s.constraint || '',
+                  verbLabel: s.verb || '',
+                  decideColor: s.vow.trim().length < 2 ? '#4a453c' : '#ece4d3',
+                  holdHint: s.vow.trim().length < 2 ? '' : '長 押 し で 決 定 す る',
+                  holdWidth: Math.round(s.hold * 100) + '%',
+                  holdDecide: this.startHold(2200, this.decide),
+                  holdRaise: this.startHold(1800, this.raise),
+                  holdDone: this.startHold(2600, this.complete),
+                  holdEnd: this.endHold,
+                  paperAnim,
+                  paperInner,
+                  textOn: rite !== 'appear',
+                  flameOn: ['ignite', 'burn', 'ash'].indexOf(rite) >= 0,
+                  ashOn: rite === 'ash',
+                  showRaise: rite === 'ready',
+                  showDone: rite === 'raised',
+                  riteHint: hints[rite] || '',
+                  blackout: s.blackout,
+                };
+              }
+            }
+        </script>
+    </body>
+</html>

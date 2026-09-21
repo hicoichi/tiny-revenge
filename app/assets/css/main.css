@@ -1,0 +1,95 @@
+:root {
+    --rr-bg: #0b0a09;
+    --rr-bg-deep: #050505;
+    --rr-bg-glow: #1c1a17;
+
+    --rr-ink: #d7cfc0;
+    --rr-ink-strong: #ece4d3;
+    --rr-ink-brightest: #f0e7d4;
+    --rr-ink-soft: #cfc6b4;
+    --rr-ink-muted: #5e5849;
+    --rr-ink-faint: #6a6252;
+    --rr-ink-dim: #4a453c;
+
+    --rr-border: #4a443a;
+    --rr-border-strong: #4a443a;
+    --rr-border-soft: #332f28;
+    --rr-border-selected: #8a7443;
+
+    --rr-gold: #c9a227;
+    --rr-gold-bright: #e6c04f;
+
+    --rr-paper: #efe7d5;
+    --rr-paper-dark: #ddd3bc;
+    --rr-paper-ink: #2a251c;
+
+    --rr-flame: #ff8a1f;
+    --rr-flame-border: #6b4a24;
+    --rr-flame-ink: #f0dcb4;
+
+    --rr-hold-fill: rgba(201, 162, 39, 0.16);
+    --rr-hold-fill-primary: rgba(255, 140, 40, 0.2);
+
+    --rr-font: 'Shippori Mincho B1', serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--rr-bg);
+    color: var(--rr-ink);
+    font-family: var(--rr-font);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--rr-gold);
+}
+
+a:hover {
+    color: var(--rr-gold-bright);
+}
+
+textarea,
+input,
+button {
+    font-family: inherit;
+}
+
+textarea:focus,
+input:focus {
+    outline: none;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 画面全体のシンプルなフェード演出。単純なUIトランジションのためGSAPではなくCSSで表現する。 */
+@keyframes rr-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes rr-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
