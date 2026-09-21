@@ -2,6 +2,11 @@ import gsap from 'gsap';
 
 type TweenVars = gsap.TweenVars;
 
+// setInterval的に自身を再スケジュールし続けるループ演出を、呼び出し側で止められるようにするハンドル。
+export interface LoopController {
+    kill: () => void;
+}
+
 // gsap.to()の完了を待てるように、Tween完了時に解決するPromiseへ包む。
 function tweenTo(el: gsap.TweenTarget, vars: TweenVars): Promise<void> {
     return new Promise((resolve) => {
@@ -52,7 +57,7 @@ export function useRitualAnimation() {
         });
     }
 
-    // 紙を炎の根元(anchorEl)へ落とす。現在の見た目上の位置に関わらず、
+    // 紙を炎の根元(anchorEl)へ、左右に揺れる木の葉のようにひらひらと落とす。
     // 実際のDOM座標から必要な移動量を逆算するため、画面サイズが変わっても着地点がずれない。
     function dropPaperInto(el: HTMLElement, anchorEl: HTMLElement) {
         const paperRect = el.getBoundingClientRect();
@@ -60,12 +65,43 @@ export function useRitualAnimation() {
         const currentY = Number(gsap.getProperty(el, 'y')) || 0;
         const naturalBottom = paperRect.bottom - currentY;
         const targetY = anchorRect.top - naturalBottom + 14;
-        return tweenTo(el, {
-            y: targetY,
-            scale: 0.76,
-            rotate: -10,
-            duration: 1.15,
-            ease: 'power2.in',
+        const rand = gsap.utils.random;
+        return new Promise<void>((resolve) => {
+            gsap.to(el, {
+                keyframes: {
+                    y: [
+                        targetY * 0.08,
+                        targetY * 0.22,
+                        targetY * 0.4,
+                        targetY * 0.58,
+                        targetY * 0.76,
+                        targetY * 0.9,
+                        targetY,
+                    ],
+                    x: [
+                        rand(-16, -8),
+                        rand(14, 24),
+                        rand(-26, -16),
+                        rand(10, 20),
+                        rand(-16, -6),
+                        rand(4, 10),
+                        0,
+                    ],
+                    rotate: [
+                        rand(-20, -12),
+                        rand(10, 18),
+                        rand(-22, -14),
+                        rand(8, 16),
+                        rand(-14, -6),
+                        rand(-2, 4),
+                        -10,
+                    ],
+                    scale: [0.97, 0.91, 0.86, 0.82, 0.79, 0.77, 0.76],
+                },
+                duration: 2.2,
+                ease: 'power1.in',
+                onComplete: resolve,
+            });
         });
     }
 
@@ -168,6 +204,100 @@ export function useRitualAnimation() {
         });
     }
 
+    // 炎の「舌」1本を、毎回ランダムな形へ素早く揺らし続ける。
+    // 複数本をそれぞれ違うタイミング・速さで動かすことで、荒々しく燃え盛る炎に見せる。
+    function loopFlameTongue(el: HTMLElement, seed = 0): LoopController {
+        const rand = gsap.utils.random;
+        let alive = true;
+        let current: gsap.core.Tween | null = null;
+
+        function cycle() {
+            if (!alive) return;
+            current = gsap.to(el, {
+                scaleY: rand(0.5, 1.75),
+                scaleX: rand(0.72, 1.3),
+                x: rand(-16, 16),
+                y: rand(-18, 6),
+                rotate: rand(-11, 11),
+                opacity: rand(0.75, 1),
+                duration: rand(0.22, 0.5),
+                ease: 'sine.inOut',
+                onComplete: cycle,
+            });
+        }
+
+        gsap.delayedCall(seed * 0.08, cycle);
+
+        return {
+            kill: () => {
+                alive = false;
+                current?.kill();
+            },
+        };
+    }
+
+    // 炎全体を照らす光を不規則に明滅させ、燃え盛る勢いの余韻を周囲にも感じさせる。
+    function loopGlowFlicker(el: HTMLElement, seed = 0): LoopController {
+        const rand = gsap.utils.random;
+        let alive = true;
+        let current: gsap.core.Tween | null = null;
+
+        function cycle() {
+            if (!alive) return;
+            current = gsap.to(el, {
+                opacity: rand(0.55, 1),
+                scale: rand(0.85, 1.15),
+                duration: rand(0.25, 0.55),
+                ease: 'sine.inOut',
+                onComplete: cycle,
+            });
+        }
+
+        gsap.delayedCall(seed * 0.1, cycle);
+
+        return {
+            kill: () => {
+                alive = false;
+                current?.kill();
+            },
+        };
+    }
+
+    // 根元から立ち上る火の粉。上昇しながらランダムに左右へ漂い、消えてはまた現れる。
+    function loopEmber(el: HTMLElement, seed = 0): LoopController {
+        const rand = gsap.utils.random;
+        let alive = true;
+        let current: gsap.core.Tween | null = null;
+
+        function cycle() {
+            if (!alive) return;
+            const startX = rand(-18, 18);
+            const midX = startX + rand(-22, 22);
+            const endX = midX + rand(-18, 18);
+            gsap.set(el, { x: startX, y: 6, opacity: 0, scale: rand(0.6, 1.1) });
+            current = gsap.to(el, {
+                keyframes: {
+                    y: [-30, -120, -230],
+                    x: [startX, midX, endX],
+                    opacity: [0, 1, 0],
+                },
+                duration: rand(1.2, 1.9),
+                ease: 'power1.out',
+                onComplete: cycle,
+            });
+        }
+
+        gsap.delayedCall(seed * 0.28, cycle);
+
+        return {
+            kill: () => {
+                alive = false;
+                current?.kill();
+                gsap.killTweensOf(el);
+            },
+        };
+    }
+
     function scatterAsh(els: HTMLElement[]) {
         if (els.length === 0) return Promise.resolve();
         return new Promise<void>((resolve) => {
@@ -198,6 +328,9 @@ export function useRitualAnimation() {
         settlePaper,
         loopFlame,
         flareFlame,
+        loopFlameTongue,
+        loopGlowFlicker,
+        loopEmber,
         scatterAsh,
     };
 }
