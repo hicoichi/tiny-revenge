@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { useFireSound } from '~/composables/useFireSound';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRevengeStorage } from '~/composables/useRevengeStorage';
 import { useRitual } from '~/composables/useRitual';
@@ -7,10 +8,26 @@ import { useRitual } from '~/composables/useRitual';
 const revenge = useRevenge();
 const ritual = useRitual();
 const storage = useRevengeStorage();
+const sound = useFireSound();
+
+// 保存状態から途中の場面へ復帰したときも、最初の操作で炎の音が鳴り始めるようにする。
+// iOS Safariはタッチのpointerdownを「ユーザー操作」と見なさず音を許可しないため、pointerupで行う。
+function unlockSound() {
+    sound.unlock();
+}
 
 onMounted(() => {
     storage.init();
+    window.addEventListener('pointerup', unlockSound);
+    window.addEventListener('keydown', unlockSound);
 });
+
+onBeforeUnmount(() => {
+    window.removeEventListener('pointerup', unlockSound);
+    window.removeEventListener('keydown', unlockSound);
+});
+
+const showSoundToggle = computed(() => ritual.step.value !== 'start');
 
 // 選択と確認は炎を共有する一続きの場面なので、同じキーにして画面を入れ替えない。
 const isOfferingScene = computed(
@@ -45,6 +62,8 @@ function onRestart() {
                 @restart="onRestart"
             />
         </Transition>
+
+        <RitualSoundToggle v-if="showSoundToggle" />
     </div>
 </template>
 

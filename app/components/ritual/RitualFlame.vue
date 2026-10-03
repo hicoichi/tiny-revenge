@@ -4,6 +4,7 @@ import { useRitualAnimation } from '~/composables/useRitualAnimation';
 import { FLAME_BASE_PAD, FLAME_BOX_WIDTH, useFlameRenderer } from '~/composables/useFlameRenderer';
 import type { FlameAnchor } from '~/composables/useFlameRenderer';
 import { useFireParticles } from '~/composables/useFireParticles';
+import { useFireSound } from '~/composables/useFireSound';
 import type { FireParticlesController } from '~/composables/useFireParticles';
 
 // 0(待機)〜1(燃え盛る)。紙が燃えるときは0/1、護摩木をくべるときは段階的に上げる。
@@ -12,12 +13,14 @@ const props = defineProps<{
 }>();
 
 const anim = useRitualAnimation();
+const sound = useFireSound();
 const rootEl = ref<HTMLElement | null>(null);
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 
 let fire: FireParticlesController | null = null;
 
 onMounted(() => {
+    sound.setPower(props.power);
     if (rootEl.value) anim.flareFlame(rootEl.value, props.power);
     const canvas = canvasEl.value;
     if (!canvas) return;
@@ -28,14 +31,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     fire?.kill();
+    sound.setPower(null);
 });
 
 // 紙が炎に触れる段階(ignite以降)で、待機中の小さな炎から一気に燃え上がる。
 watch(
     () => props.power,
-    (power) => {
+    (power, previous) => {
         if (rootEl.value) anim.flareFlame(rootEl.value, power);
         fire?.setIntensity(power);
+        sound.setPower(power);
+        if (power > previous) sound.burst();
     },
 );
 
