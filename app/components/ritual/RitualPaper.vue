@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { BURN_CHAR_DELAY_MS, BURN_FRONT_MS } from '~/constants/revenge';
+import { ASH_SETTLE_MS, BURN_CHAR_DELAY_MS, BURN_FRONT_MS, PAPER_BURN_MS } from '~/constants/revenge';
+import { BURN_PROGRESS_END, useBurningPaper } from '~/composables/useBurningPaper';
+import type { BurningPaperController } from '~/composables/useBurningPaper';
+import { capturePaper } from '~/utils/paperSnapshot';
 import { useRitual } from '~/composables/useRitual';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
 import type { RitePhase } from '~/types/revenge';
@@ -16,9 +19,14 @@ const paperEl = ref<HTMLElement | null>(null);
 const paperInnerEl = ref<HTMLElement | null>(null);
 const paperCharEl = ref<HTMLElement | null>(null);
 const textEl = ref<HTMLElement | null>(null);
+const burnCanvasEl = ref<HTMLCanvasElement | null>(null);
+// WebGLで燃やしている間は、DOMの紙を隠してcanvasの紙に差し替える。
+const isWebglBurning = ref(false);
+let burner: BurningPaperController | null = null;
 
 const showText = computed(() => ritual.ritePhase.value !== 'appear');
-const showAsh = computed(() => ritual.ritePhase.value === 'ash');
+// WebGLで燃やした場合は、灰はcanvasの中で舞うので、DOMの灰は出さない。
+const showAsh = computed(() => ritual.ritePhase.value === 'ash' && !isWebglBurning.value);
 
 let warpTween: gsap.core.Tween | null = null;
 
@@ -39,8 +47,31 @@ async function runAppear() {
     ritual.setRitePhase('ready');
 }
 
+// 紙をWebGLの紙に差し替えて燃やす。WebGLが使えない環境ではfalseを返し、DOMの演出で燃やす。
+async function runWebglBurn(): Promise<boolean> {
+    const el = paperEl.value;
+    const card = paperInnerEl.value;
+    const canvas = burnCanvasEl.value;
+    if (!el || !card || !canvas) return false;
+    const snapshot = await capturePaper(card, '.paper__rule', Math.min(window.devicePixelRatio || 1, 2));
+    burner = useBurningPaper(canvas, snapshot);
+    if (!burner) return false;
+    isWebglBurning.value = true;
+
+    ritual.setRitePhase('burn');
+    await anim.burnPaper(burner.setProgress, PAPER_BURN_MS, BURN_PROGRESS_END);
+    await wait(ASH_SETTLE_MS);
+
+    ritual.setRitePhase('ash');
+    await anim.fadeOutPaper(el);
+    ritual.finishRite();
+    return true;
+}
+
 // 紙は現れた位置に留まったまま、その場で炎が燃え移って燃え尽きる。
 async function runComplete() {
+    if (await runWebglBurn()) return;
+
     const el = paperEl.value;
     const inner = paperInnerEl.value;
     const char = paperCharEl.value;
@@ -88,13 +119,14 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     warpTween?.kill();
+    burner?.kill();
 });
 
 watch(() => ritual.ritePhase.value, runForPhase);
 </script>
 
 <template>
-    <div ref="paperEl" class="paper">
+    <div ref="paperEl" class="paper" :class="{ 'paper--webgl': isWebglBurning }">
         <div ref="paperCharEl" class="paper__char" />
         <div ref="paperInnerEl" class="paper__card">
             <p class="paper__mark">誓 ・ 復 讐</p>
@@ -106,6 +138,8 @@ watch(() => ritual.ritePhase.value, runForPhase);
             <div class="paper__firelight" />
         </div>
 
+        <canvas v-show="isWebglBurning" ref="burnCanvasEl" class="paper__burn" aria-hidden="true" />
+
         <RitualAsh v-if="showAsh" />
     </div>
 </template>
@@ -115,6 +149,18 @@ watch(() => ritual.ritePhase.value, runForPhase);
     position: relative;
     opacity: 0;
     transform-style: preserve-3d;
+}
+
+/* 位置と大きさは、炎や灰がはみ出す余白を含めてuseBurningPaperが設定する。 */
+.paper__burn {
+    position: absolute;
+    pointer-events: none;
+}
+
+/* 大きさ(レイアウト)は保ったまま見た目だけ隠し、canvasの紙と入れ替える。 */
+.paper--webgl .paper__card,
+.paper--webgl .paper__char {
+    visibility: hidden;
 }
 
 .paper__char {

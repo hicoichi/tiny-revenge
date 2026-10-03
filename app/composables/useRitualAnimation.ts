@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { valueNoise } from '~/utils/noise';
 
 type TweenVars = gsap.TweenVars;
 
@@ -9,26 +10,9 @@ function tweenTo(el: gsap.TweenTarget, vars: TweenVars): Promise<void> {
     });
 }
 
-// 紙の穴の縁を不規則にするための、位置に固定された滑らかなノイズ(バリューノイズ)。
+// 紙の穴の縁を不規則にするため、位置に固定されたノイズで縁を揺らす。
 // 以前はSVGのfeTurbulence+マスクで表現していたが、iOS SafariはCSSのmask:url(#id)を解釈しないため、
-// どのブラウザでも動くclip-pathのpath()を毎フレーム計算して作る方式にしている。
-function latticeValue(ix: number, iy: number, seed: number): number {
-    let h = Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed, 2147483629);
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-}
-
-function valueNoise(x: number, y: number, seed: number): number {
-    const ix = Math.floor(x);
-    const iy = Math.floor(y);
-    const fx = x - ix;
-    const fy = y - iy;
-    const sx = fx * fx * (3 - 2 * fx);
-    const sy = fy * fy * (3 - 2 * fy);
-    const top = latticeValue(ix, iy, seed) * (1 - sx) + latticeValue(ix + 1, iy, seed) * sx;
-    const bottom = latticeValue(ix, iy + 1, seed) * (1 - sx) + latticeValue(ix + 1, iy + 1, seed) * sx;
-    return top * (1 - sy) + bottom * sy;
-}
+// どのブラウザでも動くclip-pathのpath()を毎フレーム計算して作る方式にしている(WebGLが使えない環境向け)。
 
 // 穴の縁の凹凸の大きさ(px)。以前のSVGフィルタ(displacement scale 26)と同程度の荒さにしている。
 const BURN_EDGE_AMPLITUDE = 22;
@@ -127,6 +111,17 @@ export function useRitualAnimation() {
                 },
                 onComplete: resolve,
             });
+        });
+    }
+
+    // WebGLで燃える紙の進行度を進める。火は燃え広がるほど勢いを増すので、後半ほど速く進める。
+    function burnPaper(setProgress: (value: number) => void, durationMs: number, end: number) {
+        const state = { progress: 0 };
+        return tweenTo(state, {
+            progress: end,
+            duration: durationMs / 1000,
+            ease: 'power1.in',
+            onUpdate: () => setProgress(state.progress),
         });
     }
 
@@ -233,6 +228,7 @@ export function useRitualAnimation() {
         fadeInText,
         igniteFlash,
         growBurnFront,
+        burnPaper,
         warpPaper,
         fadeOutPaper,
         settlePaper,
