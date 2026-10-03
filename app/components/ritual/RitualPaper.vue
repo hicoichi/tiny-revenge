@@ -103,6 +103,7 @@ watch(() => ritual.ritePhase.value, runForPhase);
                 {{ vow }}
             </div>
             <div class="paper__spacer" />
+            <div class="paper__firelight" />
         </div>
 
         <RitualAsh v-if="showAsh" />
@@ -143,6 +144,21 @@ watch(() => ritual.ritePhase.value, runForPhase);
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+/* 下の炎に照らされた紙の暖色。燃えて穴が開くとカードと一緒に切り抜かれる。 */
+.paper__firelight {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        130% 75% at 50% 115%,
+        rgba(255, 128, 40, 0.8) 0%,
+        rgba(255, 110, 30, 0.3) 50%,
+        rgba(255, 100, 20, 0) 85%
+    );
+    mix-blend-mode: soft-light;
+    opacity: var(--rr-fire-light, 0);
 }
 
 .paper__mark {

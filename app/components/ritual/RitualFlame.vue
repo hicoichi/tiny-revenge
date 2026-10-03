@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
-import type { LoopController } from '~/composables/useRitualAnimation';
+import { FLAME_BASE_PAD, FLAME_BOX_WIDTH, useFlameRenderer } from '~/composables/useFlameRenderer';
+import type { FlameAnchor } from '~/composables/useFlameRenderer';
 import { useFireParticles } from '~/composables/useFireParticles';
 import type { FireParticlesController } from '~/composables/useFireParticles';
 
@@ -12,23 +13,20 @@ const props = defineProps<{
 
 const anim = useRitualAnimation();
 const rootEl = ref<HTMLElement | null>(null);
-const groundGlowEl = ref<HTMLElement | null>(null);
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 
-const loops: LoopController[] = [];
 let fire: FireParticlesController | null = null;
 
 onMounted(() => {
-    if (groundGlowEl.value) loops.push(anim.loopGlowFlicker(groundGlowEl.value));
     if (rootEl.value) anim.flareFlame(rootEl.value, props.power);
-    if (canvasEl.value) {
-        fire = useFireParticles(canvasEl.value);
-        fire.setIntensity(props.power);
-    }
+    const canvas = canvasEl.value;
+    if (!canvas) return;
+    // WebGLが使えない環境では、Canvas 2Dの簡易な炎で代替する。
+    fire = useFlameRenderer(canvas) ?? useFireParticles(canvas, FLAME_BASE_PAD);
+    fire.setIntensity(props.power);
 });
 
 onBeforeUnmount(() => {
-    loops.forEach((loop) => loop.kill());
     fire?.kill();
 });
 
@@ -40,16 +38,27 @@ watch(
         fire?.setIntensity(power);
     },
 );
+
+// 背景の陽炎や照り返しを炎に合わせるため、炎の根元の画面上の位置と表示倍率を返す。
+function getAnchor(): FlameAnchor | null {
+    const el = rootEl.value;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.bottom, scale: rect.width / FLAME_BOX_WIDTH };
+}
+
+defineExpose({ getAnchor });
 </script>
 
 <template>
     <div ref="rootEl" class="flame">
-        <div ref="groundGlowEl" class="flame__ground-glow" />
+        <div class="flame__ground-glow" />
         <canvas ref="canvasEl" class="flame__canvas" />
     </div>
 </template>
 
 <style scoped>
+/* 幅・高さはuseFlameRendererのFLAME_BOX_WIDTH/HEIGHTと一致させること。 */
 .flame {
     position: absolute;
     left: 50%;
@@ -62,26 +71,30 @@ watch(
     pointer-events: none;
 }
 
+/* 親が書き込む --rr-fire-light に合わせ、炎と同じ揺らぎで足元が明滅する。
+   下端で光が水平に切れないよう、根元より十分下まで要素を伸ばし、その手前で光を減衰させきる。 */
 .flame__ground-glow {
     position: absolute;
     left: 50%;
-    bottom: -10px;
+    bottom: -200px;
     transform: translateX(-50%);
     width: 760px;
-    height: 540px;
+    height: 740px;
     background: radial-gradient(
-        50% 55% at 50% 85%,
+        380px 297px at 50% 63%,
         rgba(255, 130, 30, 0.68) 0%,
         rgba(255, 90, 0, 0.22) 45%,
         rgba(255, 90, 0, 0) 74%
     );
+    opacity: calc(0.3 + var(--rr-fire-light, 0.5) * 0.6);
 }
 
+/* 根元の下にもブルームの光を広げるため、FLAME_BASE_PAD(120px)だけ下へはみ出させる。 */
 .flame__canvas {
     position: absolute;
     left: 0;
-    bottom: 0;
+    bottom: -120px;
     width: 100%;
-    height: 100%;
+    height: calc(100% + 120px);
 }
 </style>

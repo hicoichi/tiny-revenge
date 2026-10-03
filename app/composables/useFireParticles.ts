@@ -1,6 +1,6 @@
-// CSSの形状アニメーションでは炎内部の乱流やパーティクルの物理的な立ち上りを表現できないため、
-// canvasに数十個の火の粉パーティクルを乱流風の揺らぎで飛ばし、加算合成で発光させる方式に切り替える。
-// GSAPのTween APIは大量パーティクルの毎フレーム更新には不向きなため、ここだけ独自のrAFループを持つ。
+// WebGLが使えない環境向けの、Canvas 2Dによる簡易な炎(通常はuseFlameRendererのシェーダーの炎を使う)。
+// 光の粒を乱流風の揺らぎで立ち昇らせ、加算合成で発光させる。
+// GSAPのTween APIは大量パーティクルの毎フレーム更新には不向きなため、独自のrAFループを持つ。
 
 export interface FireParticlesController {
     // 0(待機)〜1(燃え盛る)の勢いをなめらかに切り替える。
@@ -56,9 +56,10 @@ function drawGlow(
     intensity: number,
     width: number,
     height: number,
+    baseInset: number,
 ) {
     const baseX = width / 2;
-    const baseY = height - 4;
+    const baseY = height - baseInset - 4;
     // キャンバスの端で円が四角く切り取られないよう、半径は常に短辺の範囲内に収める。
     const safeMax = Math.min(width, height) * 0.48;
 
@@ -108,7 +109,8 @@ function particleColor(life: number): string {
     return '40,20,16';
 }
 
-export function useFireParticles(canvas: HTMLCanvasElement): FireParticlesController {
+// baseInset: canvasの下端から炎の根元までの距離(px)。
+export function useFireParticles(canvas: HTMLCanvasElement, baseInset = 0): FireParticlesController {
     const ctx = canvas.getContext('2d');
 
     const width = canvas.clientWidth || 200;
@@ -127,7 +129,7 @@ export function useFireParticles(canvas: HTMLCanvasElement): FireParticlesContro
     function spawn(p: FlameParticle) {
         const spread = 26 + intensity * 40;
         p.x = width / 2 + (Math.random() - 0.5) * spread;
-        p.y = height - Math.random() * 6;
+        p.y = height - baseInset - Math.random() * 6;
         p.vx = (Math.random() - 0.5) * 20;
         p.vy = -(55 + Math.random() * 45 + intensity * 110);
         p.maxLife = 0.75 + Math.random() * 0.5 + intensity * 0.4;
@@ -166,7 +168,7 @@ export function useFireParticles(canvas: HTMLCanvasElement): FireParticlesContro
         ctx.globalCompositeOperation = 'lighter';
 
         const t = now / 1000;
-        drawGlow(ctx, t, intensity, width, height);
+        drawGlow(ctx, t, intensity, width, height, baseInset);
 
         for (const p of particles) {
             p.age += dt;

@@ -6,6 +6,7 @@ import {
     MIN_CUSTOM_ACT_LENGTH,
     REVENGE_STAGES,
 } from '~/constants/revengeStages';
+import { useFireLight } from '~/composables/useFireLight';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRitual } from '~/composables/useRitual';
 import { useRitualAnimation } from '~/composables/useRitualAnimation';
@@ -19,6 +20,7 @@ const revenge = useRevenge();
 const ritual = useRitual();
 const anim = useRitualAnimation();
 
+const offeringEl = ref<HTMLElement | null>(null);
 const hearthRef = ref<{ getFireRect: () => DOMRect | null } | null>(null);
 const handEl = ref<HTMLElement | null>(null);
 const writeInputEl = ref<HTMLInputElement | null>(null);
@@ -37,6 +39,9 @@ const isSelecting = computed(() => ritual.step.value === 'select');
 const stage = computed(() => REVENGE_STAGES[ritual.selectIndex.value]!);
 const currentIndex = computed(() => (isSelecting.value ? ritual.selectIndex.value : null));
 const flamePower = computed(() => revenge.pickedCount.value / REVENGE_STAGES.length);
+
+// 床の照り返しを炎と同じ揺らぎで明滅させる。
+useFireLight(offeringEl, () => flamePower.value);
 
 const groups = computed(() => revenge.groupsFor(stage.value));
 const hasGroupChoice = computed(() => groups.value.length > 1);
@@ -127,7 +132,7 @@ function onRewind(index: number) {
 </script>
 
 <template>
-    <div class="offering" :style="{ '--fire-lv': revenge.pickedCount.value }">
+    <div ref="offeringEl" class="offering" :style="{ '--fire-lv': revenge.pickedCount.value }">
         <div class="offering__floor" />
 
         <div class="offering__scroll">
@@ -257,8 +262,8 @@ function onRewind(index: number) {
         rgba(255, 120, 30, 0.3),
         transparent 72%
     );
-    opacity: calc(0.12 + var(--fire-lv, 0) * 0.16);
-    transition: opacity 1.4s;
+    /* 勢いの変化はuseFireLight側でなめらかにしているため、transitionは付けない(毎フレーム変わる値に掛かると遅れる)。 */
+    opacity: calc(0.12 + var(--rr-fire-light, 0) * 0.75);
 }
 
 .offering__scroll {

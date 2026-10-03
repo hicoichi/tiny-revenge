@@ -2,11 +2,6 @@ import gsap from 'gsap';
 
 type TweenVars = gsap.TweenVars;
 
-// setInterval的に自身を再スケジュールし続けるループ演出を、呼び出し側で止められるようにするハンドル。
-export interface LoopController {
-    kill: () => void;
-}
-
 // gsap.to()の完了を待てるように、Tween完了時に解決するPromiseへ包む。
 function tweenTo(el: gsap.TweenTarget, vars: TweenVars): Promise<void> {
     return new Promise((resolve) => {
@@ -171,62 +166,6 @@ export function useRitualAnimation() {
         });
     }
 
-    // 炎全体を照らす光を不規則に明滅させ、燃え盛る勢いの余韻を周囲にも感じさせる。
-    function loopGlowFlicker(el: HTMLElement, seed = 0): LoopController {
-        const rand = gsap.utils.random;
-        let alive = true;
-        let current: gsap.core.Tween | null = null;
-
-        function cycle() {
-            if (!alive) return;
-            current = gsap.to(el, {
-                opacity: rand(0.55, 1),
-                scale: rand(0.85, 1.15),
-                duration: rand(0.25, 0.55),
-                ease: 'sine.inOut',
-                onComplete: cycle,
-            });
-        }
-
-        gsap.delayedCall(seed * 0.1, cycle);
-
-        return {
-            kill: () => {
-                alive = false;
-                current?.kill();
-            },
-        };
-    }
-
-    // 炉に護摩木がくべられた瞬間に散る火の粉。
-    function burstSparks(x: number, y: number) {
-        const rand = gsap.utils.random;
-        for (let i = 0; i < 9; i += 1) {
-            const spark = document.createElement('i');
-            Object.assign(spark.style, {
-                position: 'fixed',
-                left: `${x}px`,
-                top: `${y}px`,
-                width: '3px',
-                height: '3px',
-                borderRadius: '50%',
-                background: '#ffb14a',
-                boxShadow: '0 0 6px #ff7a12',
-                pointerEvents: 'none',
-                zIndex: '15',
-            });
-            document.body.appendChild(spark);
-            gsap.to(spark, {
-                x: rand(-45, 45),
-                y: -rand(70, 160),
-                opacity: 0,
-                duration: rand(0.7, 1.2),
-                ease: 'power2.out',
-                onComplete: () => spark.remove(),
-            });
-        }
-    }
-
     // 選んだ護摩木を複製して炉へ飛ばす。元の板は残したまま隠すことで、
     // 選択肢の並びがずれず、飛行中も手札の配置が変わらない。
     function offerGomagi(source: HTMLElement, fireRect: DOMRect): Promise<void> {
@@ -255,9 +194,9 @@ export function useRitualAnimation() {
 
         return new Promise((resolve) => {
             const tl = gsap.timeline({
+                // 着火の火の粉は、炎が勢いを増したときに炎の描画側で弾けさせる。
                 onComplete: () => {
                     clone.remove();
-                    burstSparks(fireX, fireY);
                     resolve();
                 },
             });
@@ -299,7 +238,6 @@ export function useRitualAnimation() {
         settlePaper,
         flareFlame,
         offerGomagi,
-        loopGlowFlicker,
         scatterAsh,
     };
 }

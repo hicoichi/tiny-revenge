@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { HOLD_COMPLETE_MS } from '~/constants/revenge';
+import { useFireLight } from '~/composables/useFireLight';
 import { useRevenge } from '~/composables/useRevenge';
 import { useRitual } from '~/composables/useRitual';
+import type { FlameAnchor } from '~/composables/useFlameRenderer';
 import type { RitePhase } from '~/types/revenge';
 
 const revenge = useRevenge();
 const ritual = useRitual();
 
+const stageEl = ref<HTMLElement | null>(null);
+const flameRef = ref<{ getAnchor: () => FlameAnchor | null } | null>(null);
+const backdropSrc = `${useRuntimeConfig().app.baseURL.replace(/\/?$/, '/')}images/petternC.jpg`;
+
 // 炎は儀式に入った時点から灯っており、紙が燃え始めると勢いを増す。
 const flaring = computed(() =>
     (['ignite', 'burn', 'ash'] as RitePhase[]).includes(ritual.ritePhase.value),
 );
+const flamePower = computed(() => (flaring.value ? 1 : 0));
 const showComplete = computed(() => ritual.ritePhase.value === 'ready');
 
 const hint = computed(() => {
@@ -21,17 +28,25 @@ const hint = computed(() => {
     return '';
 });
 
+// 紙や足元のDOMも、炎と同じ揺らぎで照らす。
+useFireLight(stageEl, () => flamePower.value);
+
+function getFlameAnchor(): FlameAnchor | null {
+    return flameRef.value?.getAnchor() ?? null;
+}
+
 function complete() {
     ritual.setRitePhase('ignite');
 }
 </script>
 
 <template>
-    <div class="stage">
+    <div ref="stageEl" class="stage">
         <div class="stage__bg" />
+        <RitualHeatBackdrop :src="backdropSrc" :power="flamePower" :get-flame-anchor="getFlameAnchor" />
         <div class="stage__scrim" />
 
-        <RitualFlame :power="flaring ? 1 : 0" />
+        <RitualFlame ref="flameRef" :power="flamePower" />
 
         <div class="stage__paper-wrap">
             <RitualPaper
